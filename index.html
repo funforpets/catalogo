@@ -1,0 +1,443 @@
+<title>Catálogo de Importados FunForPets</title>
+<meta name="description" content="Catálogo de atacado dos importados Its Pet e FunForPets. Monte sua lista e envie a cotação pelo WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
+<style>
+/* Layout: barra azul fixa no topo, filtros grudados abaixo, grade de produtos, barra amarela de cotação fixa no rodapé e gaveta de cotação. Paleta e fonte da landing page de atacado. */
+:root{
+  --navy:#152d4d; --navy-2:#0e223c; --blue:#72c9df; --blue-ink:#2f7f9b;
+  --yellow:#f4b73f; --yellow-shadow:#cd9024; --ink:#13233a; --muted:#5f6f84;
+  --cream:#fbfaf6; --line:#dfe6ec; --card:#ffffff; --chip:#eef3f6;
+  --premium-bg:#fef0cf; --premium-ink:#8a5b0c; --its-bg:#e1f6fb; --its-ink:#1f6f8a;
+  --ok:#1e8a6d; --danger:#b4432f;
+  --font:"Nunito","Trebuchet MS",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding-inline:16px}
+
+/* topo */
+.top{background:var(--navy);color:#fff;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;border-bottom:1px solid rgba(255,255,255,.1)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px}
+.brand{font-weight:900;font-size:22px;letter-spacing:-1.2px;white-space:nowrap}
+.brand small{font-size:10px;letter-spacing:1px;border:1px solid var(--blue);color:var(--blue);padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.top-cart{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:9px;padding:8px 12px;font-weight:800;font-size:14px}
+.top-cart b{background:var(--yellow);color:var(--ink);border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:12px;padding:0 6px;font-variant-numeric:tabular-nums}
+
+.intro{background:var(--navy);color:#d2dbe6;padding-block:18px 22px}
+.intro h1{color:#fff;font-size:clamp(24px,5.4vw,36px);line-height:1.1;letter-spacing:-1.2px;margin:0 0 8px;text-wrap:balance}
+.intro p{margin:0;max-width:640px;font-size:15px}
+.steps{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13px;font-weight:800;color:#fff}
+.steps span{display:inline-flex;align-items:center;gap:7px}
+.steps i{font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--blue);color:var(--navy-2);display:inline-grid;place-items:center;font-size:11px}
+
+/* filtros */
+.filters{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:15;background:var(--cream);border-bottom:1px solid var(--line);padding-block:10px}
+.filters .wrap{display:grid;gap:8px}
+.search{position:relative}
+.search input{width:100%;height:44px;border:1px solid #cfdbe4;border-radius:10px;background:var(--card);padding:0 40px 0 38px;font-size:16px}
+.search svg{position:absolute;left:12px;top:12px;width:20px;height:20px;color:var(--muted)}
+.search .clear{position:absolute;right:6px;top:6px;width:32px;height:32px;border:0;background:transparent;border-radius:8px;color:var(--muted);font-size:20px;line-height:1}
+.row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-inline:-16px;padding-inline:16px}
+.row::-webkit-scrollbar{display:none}
+.seg{display:inline-flex;background:var(--chip);border-radius:10px;padding:3px;flex:none}
+.seg button{border:0;background:transparent;border-radius:8px;padding:7px 13px;font-weight:800;font-size:13px;color:var(--muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
+.chip{flex:none;border:1px solid #cfdbe4;background:var(--card);border-radius:999px;padding:7px 13px;font-weight:800;font-size:13px;color:#4d6178;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--its-bg);border-color:#9ed9e8;color:var(--its-ink)}
+.chip .n{font-weight:700;opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-weight:700}
+.meta button{border:0;background:none;color:var(--blue-ink);font-weight:800;padding:4px 0}
+
+/* grade */
+main{padding-block:10px 120px}
+main .meta{margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}
+@media (min-width:960px){.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
+.card{background:var(--card);border:1px solid #e1e8eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card.in{border-color:#9ed9e8;box-shadow:0 0 0 2px #d4eff6}
+.pic{aspect-ratio:1/1;max-width:100%;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative;cursor:zoom-in;padding:0;border-left:0;border-right:0;border-top:0;width:100%}
+.pic img{width:100%;height:100%;object-fit:contain;padding:8px}
+.body{padding:10px 11px 12px;display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:10px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;border-radius:999px;padding:2px 7px}
+.tag.its{background:var(--its-bg);color:var(--its-ink)}
+.tag.ffp{background:var(--premium-bg);color:var(--premium-ink)}
+.tag.var{background:var(--chip);color:var(--muted);letter-spacing:.3px}
+.card h3{font-size:14px;line-height:1.25;margin:0;font-weight:800;overflow-wrap:anywhere}
+.sku{font-size:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.sku b{color:var(--ink);font-weight:900}
+.act{margin-top:auto;padding-top:6px}
+.add{width:100%;border:0;border-radius:9px;background:var(--yellow);color:#182a42;font-weight:900;font-size:13px;padding:10px 6px;box-shadow:0 3px 0 var(--yellow-shadow)}
+.add:active{transform:translateY(2px);box-shadow:0 1px 0 var(--yellow-shadow)}
+.qty{display:flex;align-items:center;justify-content:space-between;border:1px solid #9ed9e8;background:var(--its-bg);border-radius:9px;height:41px}
+.qty button{width:40px;height:100%;border:0;background:transparent;font-size:20px;font-weight:900;color:var(--its-ink)}
+.qty input{width:52px;text-align:center;border:0;background:transparent;font-weight:900;font-size:16px;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.qty input::-webkit-outer-spin-button,.qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.empty{text-align:center;padding:48px 16px;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+
+/* barra inferior */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:25;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(251,250,246,0),var(--cream) 30%)}
+.bar button{display:flex;width:100%;max-width:560px;margin:0 auto;align-items:center;justify-content:space-between;gap:10px;border:0;border-radius:11px;padding:14px 18px;background:var(--yellow);color:#182a42;font-weight:900;font-size:16px;box-shadow:0 4px 0 var(--yellow-shadow),0 10px 30px rgba(13,34,60,.18)}
+.bar small{font-weight:700;font-size:13px;opacity:.8}
+
+/* gaveta */
+.scrim{position:fixed;inset:0;background:rgba(14,34,60,.55);z-index:40}
+.sheet{position:fixed;z-index:41;left:0;right:0;bottom:0;max-height:92vh;max-height:92dvh;background:var(--cream);border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+@media (min-width:760px){.sheet{left:auto;top:0;bottom:0;width:440px;max-height:none;border-radius:0}}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.sheet-head h2{margin:0;font-size:20px;letter-spacing:-.6px}
+.x{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:20px;line-height:1}
+.sheet-body{overflow-y:auto;padding:12px 16px 16px;display:grid;gap:16px;-webkit-overflow-scrolling:touch}
+.items{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px}
+.item img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:8px}
+.item .nm{font-size:13px;font-weight:800;line-height:1.25;overflow-wrap:anywhere}
+.item .sk{font-size:12px;color:var(--muted);font-weight:700}
+.item .qty{height:36px;width:118px}
+.item .qty button{width:34px;font-size:18px}
+.item .qty input{width:44px;font-size:15px}
+.summary{display:flex;justify-content:space-between;font-weight:800;font-size:14px;color:var(--muted)}
+.summary b{color:var(--ink)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.box h3{margin:0;font-size:15px}
+.box p{margin:0;font-size:13px;color:var(--muted)}
+.field{display:grid;gap:4px}
+.field label{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.3px}
+.field input,.field select{height:44px;border:1px solid #cfdbe4;border-radius:9px;background:#fff;padding:0 12px;font-size:16px;width:100%;min-width:0}
+.field.err input{border-color:var(--danger)}
+.field .msg{font-size:12px;color:var(--danger);font-weight:700}
+.two{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:8px}
+.note{font-size:13px;color:var(--muted);background:#eaf6f8;border-radius:10px;padding:10px 12px}
+.note b{color:var(--ink)}
+.sheet-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:grid;gap:8px;background:var(--cream)}
+.send{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:11px;padding:15px;background:#1f9d57;color:#fff;font-weight:900;font-size:16px;box-shadow:0 4px 0 #157443}
+.send svg{width:22px;height:22px}
+.link{border:0;background:none;color:var(--blue-ink);font-weight:800;font-size:13px;padding:6px}
+.foot-row{display:flex;justify-content:space-between;align-items:center}
+
+/* zoom */
+.zoom{position:fixed;inset:0;z-index:50;background:rgba(14,34,60,.85);display:flex;align-items:center;justify-content:center;padding:16px}
+.zoom figure{margin:0;background:#fff;border-radius:16px;max-width:520px;width:100%;overflow:hidden}
+.zoom img{width:100%;aspect-ratio:1/1;object-fit:contain;display:block;padding:10px}
+.zoom figcaption{padding:12px 14px 14px;border-top:1px solid var(--line);display:grid;gap:8px}
+.zoom figcaption b{font-size:15px}
+
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--navy);color:#fff;font-weight:800;font-size:13px;padding:9px 14px;border-radius:999px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion:no-preference){
+  .sheet{animation:up .22s ease-out}
+  @media (min-width:760px){.sheet{animation:side .22s ease-out}}
+  .toast{animation:fade .2s ease-out}
+}
+@keyframes up{from{transform:translateY(30px);opacity:.6}}
+@keyframes side{from{transform:translateX(40px);opacity:.6}}
+@keyframes fade{from{opacity:0;transform:translate(-50%,8px)}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="brand">funforpets <small>ATACADO</small></span>
+    <button class="top-cart" id="topCart" type="button" aria-label="Abrir cotação">Cotação <b id="topCount">0</b></button>
+  </div>
+</header>
+
+<section class="intro">
+  <div class="wrap">
+    <h1>Importados Its Pet e FunForPets para sua loja</h1>
+    <p>Escolha os produtos e as quantidades. A lista chega pronta no WhatsApp da nossa vendedora, que responde com preços, prazo e frete.</p>
+    <div class="steps" aria-label="Como funciona">
+      <span><i>1</i>Escolha os produtos</span>
+      <span><i>2</i>Confira a lista</span>
+      <span><i>3</i>Envie pelo WhatsApp</span>
+    </div>
+  </div>
+</section>
+
+<div class="filters">
+  <div class="wrap">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" inputmode="search" placeholder="Buscar por nome ou código" autocomplete="off" aria-label="Buscar por nome ou código">
+      <button class="clear" id="qClear" type="button" aria-label="Limpar busca" hidden>&times;</button>
+    </div>
+    <div class="row" id="rowPet"></div>
+    <div class="row" id="rowCat"></div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div class="meta"><span id="count"></span><button id="reset" type="button" hidden>Limpar filtros</button></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden><b>Nenhum produto encontrado</b>Tente outro termo ou limpe os filtros.</div>
+  </div>
+</main>
+
+<div class="bar" id="bar" hidden>
+  <button type="button" id="barBtn"><span id="barTxt">Ver cotação</span><small>Revisar e enviar &rarr;</small></button>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="sheet-head">
+    <h2 id="sheetTitle">Sua cotação</h2>
+    <button class="x" id="sheetClose" type="button" aria-label="Fechar">&times;</button>
+  </div>
+  <div class="sheet-body">
+    <div class="summary"><span id="sumTxt"></span><button class="link" id="clearCart" type="button">Esvaziar lista</button></div>
+    <div class="items" id="items"></div>
+    <form class="box" id="form" novalidate>
+      <h3>Dados da loja</h3>
+      <p>Com o CNPJ a vendedora já consulta o cadastro e libera as condições de pagamento.</p>
+      <div class="field" id="fLoja"><label for="loja">Nome da loja *</label><input id="loja" name="loja" autocomplete="organization" required><span class="msg" hidden>Informe o nome da loja.</span></div>
+      <div class="field" id="fCnpj"><label for="cnpj">CNPJ *</label><input id="cnpj" name="cnpj" inputmode="numeric" placeholder="00.000.000/0000-00" maxlength="18" required><span class="msg" hidden>Confira o CNPJ. Ele precisa ter 14 números válidos.</span></div>
+      <div class="field"><label for="contato">Seu nome</label><input id="contato" name="contato" autocomplete="name"></div>
+      <div class="two">
+        <div class="field"><label for="cidade">Cidade</label><input id="cidade" name="cidade" autocomplete="address-level2"></div>
+        <div class="field"><label for="uf">UF</label><select id="uf" name="uf"><option value="">--</option></select></div>
+      </div>
+    </form>
+    <div class="note"><b>Pedido mínimo de R$ 500,00.</b> Venda exclusiva para CNPJ. Você pode montar o mix como quiser, sem caixa fechada por item.</div>
+  </div>
+  <div class="sheet-foot">
+    <button class="send" id="send" type="button">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3a.5.5 0 0 0 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.7a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3Z"/></svg>
+      Enviar cotação pelo WhatsApp
+    </button>
+    <div class="foot-row"><button class="link" id="copy" type="button">Copiar lista</button><button class="link" id="more" type="button">Continuar escolhendo</button></div>
+  </div>
+</aside>
+
+<div class="zoom" id="zoom" hidden>
+  <figure>
+    <img id="zImg" alt="">
+    <figcaption><b id="zName"></b><span class="sku" id="zSku"></span><div id="zAct"></div><button class="link" id="zClose" type="button">Fechar</button></figcaption>
+  </figure>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+/* ===== Configuração =====
+   WHATSAPP: número da vendedora com DDI e DDD, só números (ex.: 5551999990000).
+   Vazio: o WhatsApp abre com a mensagem pronta e o cliente escolhe o contato.
+   IMG_BASE: pasta ou endereço onde ficam as fotos, nomeadas pelo SKU (13471.jpg). */
+var CONFIG = { WHATSAPP: "", IMG_BASE: "img/" };
+
+var PRODUCTS = [{"s": "13471", "n": "Pelúcia elefante porta-petisco 30 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Elephant Snack Holder"}, {"s": "13472", "n": "Pelúcia unicórnio porta-petisco 30 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Unicorn Snack Holder"}, {"s": "13476", "n": "Pelúcia girafa com coração sonoro 30 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Giraffe Sound Heart"}, {"s": "13473", "n": "Pelúcia macaco com coração sonoro 30 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Monkey Sound Heart"}, {"s": "13474", "n": "Pelúcia porquinho fluffy com som 23 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Fluffy Plush Pig with Sound"}, {"s": "13475", "n": "Pelúcia vaquinha fluffy com som 23 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Fluffy Plush Cow with Sound"}, {"s": "13477", "n": "Pelúcia macaco fluffy com som 23 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Fluffy Plush Monkey with Sound"}, {"s": "13478", "n": "Girafa de pescoço elástico com som 49/60 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Giraffe with a Big Elastic Neck and Sound"}, {"s": "13480", "n": "Elefante de pescoço elástico com som 49/60 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Elephant with Elastic Neck and Sound"}, {"s": "13487", "n": "Pelúcia elefante com corpo TPR e som 37 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Elephant TPR Body Sound"}, {"s": "13486", "n": "Pelúcia urso com corpo TPR e som 38 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Bear TPR Body Sound"}, {"s": "13485", "n": "Pelúcia leão com corpo TPR e som 37 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Lion TPR Body Sound"}, {"s": "13455", "n": "Pelúcia flamingo com corpo de cravos 33 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Flamingo Thorny Body"}, {"s": "13456", "n": "Pelúcia papagaio com corpo de cravos 33 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Parrot Thorny Body"}, {"s": "13461", "n": "Pelúcia coelho com coração sonoro 33 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Bunny Sound Heart"}, {"s": "13453", "n": "Pelúcia patinho com coração sonoro 29 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Duckling Sound Heart"}, {"s": "13452", "n": "Pelúcia urso com coração sonoro 29 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Bear Sound Heart"}, {"s": "13454", "n": "Pelúcia sapo com coração sonoro 27 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Frog Sound Heart"}, {"s": "13450", "n": "Pelúcia raposa com corpo de corda e som 37 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Fox Body Rope and Sound"}, {"s": "13451", "n": "Pelúcia esquilo com corpo de corda e som 40 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Plush Squirrel Rope and Sound"}, {"s": "13697", "n": "Fundog Wild pato 36 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Fundog Toy Wild Duck"}, {"s": "13698", "n": "Fundog Wild girafa 39 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Fundog Toy Wild Giraffe"}, {"s": "13699", "n": "Fundog Wild zebra 30 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Fundog Toy Wild Zebra"}, {"s": "13700", "n": "Fundog Wild raposa 44 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Fundog Toy Wild Fox"}, {"s": "13488", "n": "Bola de corda com TPR 32 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Rope Ball Moderator with TPR"}, {"s": "13463", "n": "Mordedor TPR multipontas com corda 49 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Multi-tipped TPR Teether + Rope"}, {"s": "13489", "n": "Corda dupla com mordedor TPR 32 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Double Rope + TPR Teether"}, {"s": "13449", "n": "Bola porta-petisco com corda Ø 7,5 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Snack Ball with String"}, {"s": "13465", "n": "Bola porta-petisco com corda 25 cm", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Snack Ball with String"}, {"s": "13464", "n": "Porta-petisco com cordão elástico", "l": "ffp", "p": "cao", "c": "Brinquedos", "x": "Snack Holder Elastic Cord"}, {"s": "13687", "n": "Comedouro lento labirinto de silicone 19 x 19 cm", "l": "ffp", "p": "ambos", "c": "Comedouros e bebedouros", "x": "Maze Silicone Slow Food Bowl"}, {"s": "13688", "n": "Tapete lento quadrado de silicone 20 x 20 cm", "l": "ffp", "p": "ambos", "c": "Comedouros e bebedouros", "x": "Square Silicone Slow Food Mat"}, {"s": "13686", "n": "Tapete lambedor 4 em 1 de silicone 20 x 20 cm", "l": "ffp", "p": "ambos", "c": "Comedouros e bebedouros", "x": "4x1 Silicone Slow Food Licking Mat"}, {"s": "13685", "n": "Tapete lambedor 6 em 1 de silicone 30 x 20 cm", "l": "ffp", "p": "ambos", "c": "Comedouros e bebedouros", "x": "6x1 Silicone Slow Food Licking Mat"}, {"s": "13692", "n": "Funcat pássaro realista com penas 20 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Realistic with Feathers"}, {"s": "13691", "n": "Funcat pássaro realista com catnip 15 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Realistic Catnip Bird"}, {"s": "13693", "n": "Funcat bolinha de lã com chip de som 5 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Lamb Ball Sound Chip"}, {"s": "13694", "n": "Funcat ratinho de lã com chip de som 7 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Wooly Mouse Sound Chip"}, {"s": "13695", "n": "Funcat bolinha fluffy monstro vermelha 7 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Fluffy Ball Monster Red"}, {"s": "13696", "n": "Funcat bolinha fluffy monstro rosa 7 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Fluffy Ball Monster Pink"}, {"s": "13462", "n": "Luva interativa para gatos", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Glove Interacts Cat"}, {"s": "13483", "n": "Varinha pelúcia laranja com penas 37 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Orange Plush Cat Wand and Feather"}, {"s": "13484", "n": "Varinha pelúcia azul com penas 37 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Blue Plush Cat Wand and Feather"}, {"s": "13676", "n": "Funcat varinha libélula", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Wand Bait Dragonfly"}, {"s": "13677", "n": "Funcat varinha mosca 36 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Wand Bait Fly"}, {"s": "13674", "n": "Funcat varinha pássaros realistas com catnip 18 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Wand Realistic Birds Catnip"}, {"s": "13675", "n": "Funcat varinha pássaros realistas com penas 43 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Wand Realistic Birds with Feathers"}, {"s": "13678", "n": "Varinha bola fluffy monstro vermelha 42 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Fluffy Ball Monster Red"}, {"s": "13679", "n": "Varinha bola fluffy monstro rosa 42 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Fluffy Ball Monster Pink"}, {"s": "13680", "n": "Funcat varinha pássaro fluffy laranja 42 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Wand Fluffy Bird Orange"}, {"s": "13681", "n": "Funcat varinha pássaro fluffy rosa 42 cm", "l": "ffp", "p": "gato", "c": "Brinquedos", "x": "Funcat Toy Wand Fluffy Bird Pink"}, {"s": "13467", "n": "Arranhador cenoura 36 cm", "l": "ffp", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13469", "n": "Arranhador interativo 40 cm", "l": "ffp", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13470", "n": "Arranhador interativo 46 cm", "l": "ffp", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13468", "n": "Arranhador cogumelo 50 cm", "l": "ffp", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13466", "n": "Arranhador coqueiro 52 cm", "l": "ffp", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13497", "n": "Comedouro elevado gatinho 11,5 x 12,5 cm", "l": "its", "p": "gato", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13498", "n": "Comedouro abacaxi 24 x 18,5 x 7 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13496", "n": "Comedouro corujinha 20,7 x 18 x 6,7 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13499", "n": "Comedouro strawberry 17,5 x 19,7 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13500", "n": "Comedouro flower 18,2 x 6,7 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13502", "n": "Comedouro tree leaf 26 x 18,5 x 7,5 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13503", "n": "Comedouro lento abacaxi 25,5 x 19,5 x 4,5 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13501", "n": "Comedouro monster smile 21,5 x 22 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13597", "n": "Comedouro lambe lambe lento 18,6 x 15,5 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13507", "n": "Bebedouro lento 22 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13609", "n": "Comedouro elevado descolado inox 14,2 x 14,2 x 9 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13590", "n": "Comedouro cat face inclinado", "l": "its", "p": "gato", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13599", "n": "Comedouro chick 16,5 x 9 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13592", "n": "Comedouro elevado anime inox 14 x 14 x 10,5 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13598", "n": "Comedouro elevado moderno inox 14 x 14 x 9 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13593", "n": "Comedouro duplo elevado tigela inox 32,5 x 17 x 10 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13505", "n": "Comedouro inox Quack Quack", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13591", "n": "Comedouro e bebedouro inox Quack Quack 39 x 21 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13504", "n": "Comedouro duplo com bebedouro lento Quack Quack 39 x 21 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13506", "n": "Comedouro premium 3 em 1 36 x 23,5 x 20 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13508", "n": "Comedouro + bebedouro automático premium 26 x 30 x 30 cm", "l": "its", "p": "ambos", "c": "Comedouros e bebedouros", "x": ""}, {"s": "13565", "n": "Tapete gelado P 40 x 50 cm", "l": "its", "p": "ambos", "c": "Conforto", "x": ""}, {"s": "13564", "n": "Tapete gelado M 50 x 65 cm", "l": "its", "p": "ambos", "c": "Conforto", "x": ""}, {"s": "13563", "n": "Tapete gelado G 50 x 90 cm", "l": "its", "p": "ambos", "c": "Conforto", "x": ""}, {"s": "13558", "n": "Peitoral para gatos Basic 1 cm", "l": "its", "p": "gato", "c": "Passeio", "x": ""}, {"s": "13553", "n": "Peitoral para gatos Colors 1 cm", "l": "its", "p": "gato", "c": "Passeio", "x": ""}, {"s": "13600", "n": "Guia retrátil 3 m", "l": "its", "p": "cao", "c": "Passeio", "x": "cores sortidas"}, {"s": "13625", "n": "Case para AirTag modelo coleira", "l": "its", "p": "ambos", "c": "Passeio", "x": ""}, {"s": "13624", "n": "Case para AirTag modelo pingente", "l": "its", "p": "ambos", "c": "Passeio", "x": ""}, {"s": "13555", "n": "Focinheira premium importada nº 1", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13556", "n": "Focinheira premium importada nº 2", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13557", "n": "Focinheira premium importada nº 3", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13559", "n": "Focinheira premium importada nº 4", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13560", "n": "Focinheira premium importada nº 5", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13561", "n": "Focinheira premium importada nº 6", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13562", "n": "Focinheira premium importada nº 7", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13552", "n": "Dispenser cata-caca bolsa premium 5 x 9,5 cm", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13613", "n": "Dispenser cata-caca cactus 10 x 8 cm", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13612", "n": "Cata-caca copo de café 8 x 5 cm", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13683", "n": "Dispenser lanterna", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13682", "n": "Kit cata-caca dispenser + 2 rolos", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13684", "n": "Dispensers 12 unidades", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13672", "n": "Refil cata-caca 3 unidades", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13673", "n": "Kit refil cata-caca 12 unidades", "l": "its", "p": "cao", "c": "Passeio", "x": ""}, {"s": "13580", "n": "Pá higiênica inox 27,5 x 10 cm", "l": "its", "p": "gato", "c": "Higiene e beleza", "x": ""}, {"s": "13614", "n": "Caixa de areia lateral aberta 13 x 35,5 x 49 cm", "l": "its", "p": "gato", "c": "Higiene e beleza", "x": "acompanha pá"}, {"s": "13573", "n": "Adesivo para gato arranhar 30 x 100 cm", "l": "its", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13574", "n": "Adesivo para gato arranhar 40 x 200 cm", "l": "its", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13575", "n": "Adesivo para gato arranhar 60 x 200 cm", "l": "its", "p": "gato", "c": "Arranhadores", "x": ""}, {"s": "13554", "n": "Luva mágica removedora de pelos 23 x 17 cm", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13724", "n": "Luva removedora de pelos 23 x 17 cm", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13605", "n": "Escova removedora de pelos 19,5 x 18,5 cm", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13720", "n": "Escova de dentes dupla", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13578", "n": "Escova dental dedal 360 com 2 unidades", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13571", "n": "Luva dedal escova de dentes 50 unidades", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13706", "n": "Pente tira pulgas curto", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13705", "n": "Pente tira pulgas longo", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13703", "n": "Alicate de unha para gatos", "l": "its", "p": "gato", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13704", "n": "Alicate de unha guilhotina", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13701", "n": "Alicate de unha M", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13702", "n": "Alicate de unha G", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13689", "n": "Mamadeira", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13566", "n": "Aplicador de comprimido", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13725", "n": "Escova dupla P", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13726", "n": "Escova dupla M", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13795", "n": "Escova de lâmina removedora de pelos", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13713", "n": "Rasqueadeira patinhas nº 1", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13715", "n": "Rasqueadeira patinhas nº 2", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13716", "n": "Rasqueadeira patinhas nº 3", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13717", "n": "Rasqueadeira curva P nº 1", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13718", "n": "Rasqueadeira curva M nº 2", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13719", "n": "Rasqueadeira pop", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13616", "n": "Rasqueadeira Funny Hear dog 20 cm", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13619", "n": "Rasqueadeira Funny Hear duck 19,5 x 8,5 cm", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13620", "n": "Rasqueadeira Funny Hear cat 20 x 10 cm", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": "cores sortidas"}, {"s": "13610", "n": "Escova de banho limpa e massageia 8 x 5 cm", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13617", "n": "Escova a vapor massageadora 3 em 1", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13618", "n": "Rasqueadeira a vapor autolimpante", "l": "its", "p": "ambos", "c": "Higiene e beleza", "x": ""}, {"s": "13521", "n": "Mordedor waffle nylon 10 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13522", "n": "Mordedor donut nylon 9,5 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13519", "n": "Mordedor pizza nylon 10 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13509", "n": "Osso com cravos, som e luz 17 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13523", "n": "Chupeta com guizo 9 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13525", "n": "Galo com som mini 17 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13527", "n": "Galo com som M 28 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13528", "n": "Galo com som G 38 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13524", "n": "Bola funny 7 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13518", "n": "Bola ouriço esporte 9 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13514", "n": "Bola ouriço com luz e som P 6,5 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": "cores sortidas"}, {"s": "13513", "n": "Bola ouriço com luz e som M 7,5 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": "cores sortidas"}, {"s": "13512", "n": "Bola ouriço com luz e som G 8,5 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": "cores sortidas"}, {"s": "13530", "n": "Mordedor coxa dental M", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13531", "n": "Mordedor coxa dental G", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13510", "n": "Bola pula pula P 4,5 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13511", "n": "Bola pula pula M 6 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13515", "n": "Bola trançada com sino colorida P 6,5 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13516", "n": "Bola trançada com sino colorida M 8,5 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13517", "n": "Bola trançada com sino colorida G 10 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13529", "n": "Kit brinquedo vinil sortido com 6", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13626", "n": "Corda interativa porta-petisco 35 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13630", "n": "Corda interativa porta-petisco 34 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13628", "n": "Corda interativa nó 33 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13629", "n": "Corda interativa chupeta 26 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13627", "n": "Corda interativa bola esporte 33 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13631", "n": "Corda interativa nó e bola 30 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13690", "n": "Pelúcia Its Pet Bubu Bear", "l": "its", "p": "cao", "c": "Brinquedos", "x": "cores sortidas"}, {"s": "13567", "n": "Pelúcia jacaré 34 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13481", "n": "Pelúcia polvo 30 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13482", "n": "Pelúcia sapo 48 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13479", "n": "Pelúcia macaco 48 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13457", "n": "Pelúcia porco 48 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13458", "n": "Pelúcia Quack Quack P 25 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13459", "n": "Pelúcia Quack Quack M 32 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13460", "n": "Pelúcia Quack Quack G 45 cm", "l": "its", "p": "cao", "c": "Brinquedos", "x": ""}, {"s": "13579", "n": "Passarinho voador com movimento, som e catnip", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13601", "n": "Varinha bichinho sisal e penas", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13534", "n": "Varinha borboleta shine", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13535", "n": "Varinha libélula 31 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13536", "n": "Varinha ratinho plush com penas e catnip 40 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13537", "n": "Passarinho cauda plush com catnip 45 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13585", "n": "Peixinho plush colorido 40 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13602", "n": "Varinha bola trançada com guizo e pena 40 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13539", "n": "Varinha libélula shine 49 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13603", "n": "Varinha ratinho sisal e guizo", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13543", "n": "Varinha bolinha sisal com pena", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13604", "n": "Varinha passarinho sisal e guizo com penas", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13541", "n": "Varinha ratinho pelúcia crinkle 40 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13540", "n": "Varinha cobrinha 37 cm + 77 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13542", "n": "Varinha ratinho cauda pelúcia 46 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13587", "n": "Gato snack catnip 20 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13570", "n": "Polvinho plush com catnip 19 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13572", "n": "Ratinho cauda plush com catnip 14,5 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13576", "n": "Pelúcia com catnip 13 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13577", "n": "Ratinho sapeca catnip 13 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13583", "n": "Peixinho xadrez com plumas e catnip 12 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13584", "n": "Borboleta xadrez com plumas e catnip 20 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13589", "n": "Ratinho orelhudo vibratório", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13588", "n": "Passarinho penacho 6,5 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13581", "n": "Peixe crinkle com catnip 13 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13538", "n": "Peixe plush colorido catnip 13 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13594", "n": "Gato animais com molinha maluca 12 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13520", "n": "Pássaro animais com molinha maluca e catnip 11 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13595", "n": "Peixinho sisal colorido com penas 8,5 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13568", "n": "Ratinho colorido corda e penas 7,5 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13586", "n": "Peixe shine catnip 21 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13569", "n": "Bola trançada com pena 4 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13533", "n": "Bolinha TPR com guizo e penas 25 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13632", "n": "Polvinho sisal com guizo 4 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13633", "n": "Rattatuli com guizo 10 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13582", "n": "Ratinho cauda brilhosa com catnip 6 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13596", "n": "Ratinho colorido com pena 7,5 cm, pote com 50", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13545", "n": "Ratinho real 6 cm, pote com 50", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13546", "n": "Ratinho real colorido 6 cm, pote com 50", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13547", "n": "Brinquedo gatinho bobo 13 x 16 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13550", "n": "Torre 3 níveis diversão 25 x 18,5 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13551", "n": "Torre 3 níveis funny 30 x 30 x 37 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13548", "n": "Gato torre divertida 21 x 17 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13549", "n": "Petisqueira gatinho bobo 21,5 x 29 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13544", "n": "Hedgehog lambe e coça catnip 2 em 1 6,5 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}, {"s": "13532", "n": "Lambe lambe catnip abacate 5 cm", "l": "its", "p": "gato", "c": "Brinquedos", "x": ""}];
+
+var CATS = ["Brinquedos","Comedouros e bebedouros","Higiene e beleza","Passeio","Arranhadores","Conforto"];
+var PETS = [["todos","Todos"],["cao","Cães"],["gato","Gatos"]];
+var LINES = [["todas","Todas as linhas"],["its","Its Pet"],["ffp","FunForPets"]];
+var UFS = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split(" ");
+
+var state = { q:"", pet:"todos", cat:"", line:"todas" };
+var cart = {}; // sku -> qty
+var bySku = {};
+PRODUCTS.forEach(function(p){ bySku[p.s]=p; p.k = norm(p.n+" "+p.s+" "+(p.x||"")+" "+p.c); });
+
+function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function img(p){ return CONFIG.IMG_BASE + p.s + ".jpg"; }
+function lineName(l){ return l==="ffp" ? "FunForPets" : "Its Pet"; }
+
+function load(){
+  try{ var c=JSON.parse(localStorage.getItem("ffp-cot")||"{}"); Object.keys(c).forEach(function(k){ if(bySku[k] && c[k]>0) cart[k]=c[k]; }); }catch(e){}
+  try{ var f=JSON.parse(localStorage.getItem("ffp-loja")||"{}"); ["loja","cnpj","contato","cidade","uf"].forEach(function(k){ if(f[k]) $(k).value=f[k]; }); }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem("ffp-cot",JSON.stringify(cart)); }catch(e){}
+}
+function saveForm(){
+  var f={}; ["loja","cnpj","contato","cidade","uf"].forEach(function(k){ f[k]=$(k).value; });
+  try{ localStorage.setItem("ffp-loja",JSON.stringify(f)); }catch(e){}
+}
+
+/* ---- filtros ---- */
+function match(p, ignore){
+  if(state.q){ var t=norm(state.q).trim().split(/\s+/); for(var i=0;i<t.length;i++){ if(p.k.indexOf(t[i])<0) return false; } }
+  if(ignore!=="pet" && state.pet!=="todos" && !(p.p===state.pet || p.p==="ambos")) return false;
+  if(ignore!=="cat" && state.cat && p.c!==state.cat) return false;
+  if(ignore!=="line" && state.line!=="todas" && p.l!==state.line) return false;
+  return true;
+}
+function renderFilters(){
+  var seg = '<div class="seg" role="group" aria-label="Pet">' + PETS.map(function(x){
+    return '<button type="button" data-pet="'+x[0]+'" aria-pressed="'+(state.pet===x[0])+'">'+x[1]+'</button>'; }).join("") + '</div>';
+  var lseg = '<div class="seg" role="group" aria-label="Linha">' + LINES.map(function(x){
+    return '<button type="button" data-line="'+x[0]+'" aria-pressed="'+(state.line===x[0])+'">'+x[1]+'</button>'; }).join("") + '</div>';
+  $("rowPet").innerHTML = seg + lseg;
+  var base = PRODUCTS.filter(function(p){ return match(p,"cat"); });
+  var chips = '<button type="button" class="chip" data-cat="" aria-pressed="'+(!state.cat)+'">Todas as categorias<span class="n">'+base.length+'</span></button>';
+  CATS.forEach(function(c){
+    var n = base.filter(function(p){ return p.c===c; }).length;
+    if(!n && state.cat!==c) return;
+    chips += '<button type="button" class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+esc(c)+'<span class="n">'+n+'</span></button>';
+  });
+  $("rowCat").innerHTML = chips;
+  var dirty = state.q || state.pet!=="todos" || state.cat || state.line!=="todas";
+  $("reset").hidden = !dirty;
+  $("qClear").hidden = !state.q;
+}
+function actHtml(p){
+  var q = cart[p.s]||0;
+  if(!q) return '<button type="button" class="add" data-add="'+p.s+'">Adicionar à cotação</button>';
+  return '<div class="qty"><button type="button" data-dec="'+p.s+'" aria-label="Diminuir quantidade">&minus;</button>'+
+    '<input type="number" min="0" inputmode="numeric" value="'+q+'" data-set="'+p.s+'" aria-label="Quantidade de '+esc(p.n)+'">'+
+    '<button type="button" data-inc="'+p.s+'" aria-label="Aumentar quantidade">+</button></div>';
+}
+function cardHtml(p){
+  var tags = '<span class="tag '+p.l+'">'+lineName(p.l)+'</span>';
+  if(p.x && /sortid|acompanha/i.test(p.x)) tags += '<span class="tag var">'+esc(p.x)+'</span>';
+  return '<article class="card'+(cart[p.s]?' in':'')+'" data-card="'+p.s+'">'+
+    '<button type="button" class="pic" data-zoom="'+p.s+'" aria-label="Ampliar foto de '+esc(p.n)+'"><img src="'+img(p)+'" alt="'+esc(p.n)+'" loading="lazy" decoding="async" width="560" height="560"></button>'+
+    '<div class="body"><div class="tags">'+tags+'</div><h3>'+esc(p.n)+'</h3>'+
+    '<span class="sku">Cód. <b>'+p.s+'</b></span>'+
+    '<div class="act">'+actHtml(p)+'</div></div></article>';
+}
+function renderGrid(){
+  var list = PRODUCTS.filter(function(p){ return match(p); });
+  $("grid").innerHTML = list.map(cardHtml).join("");
+  $("empty").hidden = list.length>0;
+  $("count").textContent = list.length + (list.length===1?" produto":" produtos");
+}
+function refreshCard(s){
+  var el = document.querySelector('[data-card="'+s+'"]');
+  if(!el) return;
+  el.classList.toggle("in", !!cart[s]);
+  el.querySelector(".act").innerHTML = actHtml(bySku[s]);
+}
+
+/* ---- cotação ---- */
+function totals(){ var k=Object.keys(cart); return { items:k.length, units:k.reduce(function(a,s){return a+cart[s];},0) }; }
+function setQty(s,q,from){
+  q = Math.max(0, Math.min(9999, parseInt(q,10)||0));
+  if(q) cart[s]=q; else delete cart[s];
+  save(); refreshCard(s); renderBar();
+  if(!$("sheet").hidden) renderItems(from);
+  if(!$("zoom").hidden && $("zAct").dataset.s===s) $("zAct").innerHTML = actHtml(bySku[s]);
+}
+function renderBar(){
+  var t=totals();
+  $("topCount").textContent = t.items;
+  $("bar").hidden = t.items===0 || !$("sheet").hidden;
+  $("barTxt").textContent = t.items + (t.items===1?" produto":" produtos") + " na cotação";
+}
+function renderItems(keepFocusSku){
+  var keys = Object.keys(cart);
+  var t = totals();
+  $("sumTxt").innerHTML = '<b>'+t.items+'</b> '+(t.items===1?'produto':'produtos')+' · <b>'+t.units+'</b> '+(t.units===1?'unidade':'unidades');
+  $("clearCart").hidden = !keys.length;
+  if(!keys.length){
+    $("items").innerHTML = '<div class="empty" style="padding:24px 8px"><b>Sua lista está vazia</b>Toque em "Adicionar à cotação" nos produtos que quiser.</div>';
+    return;
+  }
+  $("items").innerHTML = keys.map(function(s){ var p=bySku[s];
+    return '<div class="item"><img src="'+img(p)+'" alt="" loading="lazy"><div style="min-width:0"><div class="nm">'+esc(p.n)+'</div><div class="sk">Cód. '+s+' · '+lineName(p.l)+'</div></div>'+actHtml(p)+'</div>';
+  }).join("");
+}
+function openSheet(){
+  renderItems(); $("sheet").hidden=false; $("scrim").hidden=false; renderBar();
+  document.body.style.overflow="hidden"; $("sheetClose").focus();
+}
+function closeSheet(){
+  $("sheet").hidden=true; $("scrim").hidden=true; document.body.style.overflow=""; renderBar();
+}
+
+function onlyDigits(s){ return (s||"").replace(/\D/g,""); }
+function maskCnpj(v){
+  var d=onlyDigits(v).slice(0,14), o="";
+  for(var i=0;i<d.length;i++){ if(i===2||i===5) o+="."; if(i===8) o+="/"; if(i===12) o+="-"; o+=d[i]; }
+  return o;
+}
+function validCnpj(v){
+  var c=onlyDigits(v); if(c.length!==14 || /^(\d)\1+$/.test(c)) return false;
+  function dv(n){ var w=n===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2], s=0; for(var i=0;i<n;i++) s+=+c[i]*w[i]; var r=s%11; return r<2?0:11-r; }
+  return dv(12)===+c[12] && dv(13)===+c[13];
+}
+function setErr(id,on){ $(id).classList.toggle("err",on); $(id).querySelector(".msg").hidden=!on; }
+
+function buildMsg(){
+  var L=[];
+  L.push("Olá! Montei uma lista no catálogo de importados e quero a cotação destes itens.");
+  L.push("");
+  L.push("*Loja:* "+$("loja").value.trim());
+  L.push("*CNPJ:* "+$("cnpj").value.trim());
+  if($("contato").value.trim()) L.push("*Contato:* "+$("contato").value.trim());
+  var cid=$("cidade").value.trim(), uf=$("uf").value;
+  if(cid||uf) L.push("*Cidade:* "+cid+(cid&&uf?"/":"")+uf);
+  L.push("");
+  L.push("*Itens:*");
+  Object.keys(cart).forEach(function(s){ L.push(cart[s]+" un. | "+s+" | "+bySku[s].n); });
+  var t=totals();
+  L.push("");
+  L.push("Total: "+t.items+(t.items===1?" produto":" produtos")+", "+t.units+" unidades.");
+  return L.join("\n");
+}
+function checkForm(){
+  var ok=true;
+  var l=$("loja").value.trim().length>1; setErr("fLoja",!l); ok=ok&&l;
+  var c=validCnpj($("cnpj").value); setErr("fCnpj",!c); ok=ok&&c;
+  if(!l) $("loja").focus(); else if(!c) $("cnpj").focus();
+  return ok;
+}
+function toast(t){ var el=$("toast"); el.textContent=t; el.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){el.hidden=true;},2200); }
+
+/* ---- eventos ---- */
+document.addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b) return;
+  var d=b.dataset;
+  if(d.pet){ state.pet=d.pet; update(); }
+  else if(d.line){ state.line=d.line; update(); }
+  else if(d.cat!==undefined && b.classList.contains("chip")){ state.cat=d.cat; update(); }
+  else if(d.add){ setQty(d.add,1); toast("Adicionado à cotação"); }
+  else if(d.inc){ setQty(d.inc,(cart[d.inc]||0)+1); }
+  else if(d.dec){ setQty(d.dec,(cart[d.dec]||0)-1); }
+  else if(d.zoom){ var p=bySku[d.zoom]; $("zImg").src=img(p); $("zImg").alt=p.n; $("zName").textContent=p.n; $("zSku").innerHTML='Cód. <b>'+p.s+'</b> · '+lineName(p.l); $("zAct").dataset.s=p.s; $("zAct").innerHTML=actHtml(p); $("zoom").hidden=false; $("zClose").focus(); }
+});
+document.addEventListener("change",function(e){ var s=e.target.dataset && e.target.dataset.set; if(s) setQty(s,e.target.value); });
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"){ if(!$("zoom").hidden) $("zoom").hidden=true; else if(!$("sheet").hidden) closeSheet(); }
+  if(e.key==="Enter" && e.target.dataset && e.target.dataset.set){ e.target.blur(); }
+});
+var qt; $("q").addEventListener("input",function(){ clearTimeout(qt); var v=this.value; qt=setTimeout(function(){ state.q=v; update(); },120); });
+$("qClear").onclick=function(){ $("q").value=""; state.q=""; update(); $("q").focus(); };
+$("reset").onclick=function(){ $("q").value=""; state={q:"",pet:"todos",cat:"",line:"todas"}; update(); };
+$("topCart").onclick=openSheet; $("barBtn").onclick=openSheet;
+$("sheetClose").onclick=closeSheet; $("scrim").onclick=closeSheet; $("more").onclick=closeSheet;
+$("zClose").onclick=function(){ $("zoom").hidden=true; };
+$("zoom").addEventListener("click",function(e){ if(e.target===this) this.hidden=true; });
+$("clearCart").onclick=function(){
+  if(this.dataset.confirm){ var ks=Object.keys(cart); cart={}; save(); ks.forEach(refreshCard); renderItems(); renderBar(); this.textContent="Esvaziar lista"; delete this.dataset.confirm; return; }
+  this.dataset.confirm="1"; this.textContent="Toque de novo para esvaziar"; var me=this; setTimeout(function(){ if(me.dataset.confirm){ me.textContent="Esvaziar lista"; delete me.dataset.confirm; } },3000);
+};
+$("cnpj").addEventListener("input",function(){ this.value=maskCnpj(this.value); if($("fCnpj").classList.contains("err") && validCnpj(this.value)) setErr("fCnpj",false); saveForm(); });
+["loja","contato","cidade","uf"].forEach(function(k){ $(k).addEventListener("input",function(){ if(k==="loja" && this.value.trim().length>1) setErr("fLoja",false); saveForm(); }); });
+$("send").onclick=function(){
+  if(!totals().items){ toast("Adicione pelo menos um produto"); return; }
+  if(!checkForm()) return;
+  var url="https://wa.me/"+onlyDigits(CONFIG.WHATSAPP)+"?text="+encodeURIComponent(buildMsg());
+  var a=document.createElement("a"); a.href=url; a.target="_blank"; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove();
+};
+$("copy").onclick=function(){
+  if(!totals().items){ toast("Adicione pelo menos um produto"); return; }
+  var txt=buildMsg();
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(function(){ toast("Lista copiada"); },function(){ fallbackCopy(txt); }); }
+  else fallbackCopy(txt);
+};
+function fallbackCopy(t){ var ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("Lista copiada"); }catch(e){ toast("Não foi possível copiar"); } ta.remove(); }
+
+function update(){ renderFilters(); renderGrid(); }
+
+$("uf").innerHTML += UFS.map(function(u){ return '<option>'+u+'</option>'; }).join("");
+load(); update(); renderBar();
+</script>
