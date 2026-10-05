@@ -34,7 +34,7 @@ button{cursor:pointer}
 .top{background:var(--navy);color:#fff;position:sticky;top:0;z-index:30;padding-top:env(safe-area-inset-top,0px)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px}
 .brand{display:flex;align-items:center;gap:7px;font-weight:900;font-size:21px;letter-spacing:-1.2px;white-space:nowrap;color:#fff;text-decoration:none}
-.brand img{height:30px;width:auto;display:block}
+.brand img{height:38px;width:auto;display:block}
 .brand small{font-size:9.5px;letter-spacing:1px;border:1px solid var(--blue);color:var(--blue);padding:2px 6px;border-radius:4px}
 .top-cart{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:9px;padding:7px 11px;font-weight:800;font-size:14px}
 .top-cart b{background:var(--yellow);color:var(--ink);border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:12px;padding:0 6px;font-variant-numeric:tabular-nums}
@@ -67,6 +67,10 @@ button{cursor:pointer}
 .bn .pics{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:40%;height:78%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px}
 .bn .pics img{width:100%;height:100%;object-fit:contain;background:#fff;border-radius:10px;padding:4px;min-height:0}
 .bn .pics img:first-child{grid-row:span 2}
+.bn.art .shade{background:linear-gradient(90deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,0) 52%)}
+.bn.art .txt{width:50%;padding-right:6px}
+.bn.art .t{font-size:clamp(16px,4.4vw,24px)}
+@media (max-width:420px){.bn.art .d{font-size:11px}.bn.art .k{font-size:9px}}
 .bn.alt{background:#1f4a73}
 .bn.gold{background:#5b3c09}
 .bn.gold .shade{background:linear-gradient(90deg,rgba(60,38,4,.95) 0%,rgba(60,38,4,.8) 42%,rgba(60,38,4,0) 70%)}
@@ -74,12 +78,12 @@ button{cursor:pointer}
 .dots{display:flex;justify-content:center;gap:6px;padding-top:9px}
 .dots button{width:7px;height:7px;border-radius:50%;border:0;padding:0;background:#c9d4dd}
 .dots button[aria-current="true"]{background:var(--navy);width:18px;border-radius:4px}
-.bwrap{position:relative}
-.arrow{display:none;position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:var(--navy);font-size:22px;font-weight:900;box-shadow:0 4px 14px rgba(13,34,60,.25);z-index:2}
-.arrow.prev{left:-6px}.arrow.next{right:-6px}
+.bnav{display:flex;align-items:center;justify-content:center;gap:12px;padding-top:9px}
+.bnav .dots{padding-top:0}
+.arrow{display:none;width:32px;height:32px;border-radius:50%;border:1px solid #cfdbe4;background:var(--card);color:var(--navy);font-size:20px;font-weight:900;line-height:1;padding:0}
 @media (min-width:760px){.arrow{display:grid;place-items:center}}
-.grid .bn{grid-column:1/-1;aspect-ratio:auto;min-height:190px}
-@media (min-width:760px){.grid .bn{min-height:180px;aspect-ratio:4/1}.grid .bn .txt{width:50%}.grid .bn .pics{width:34%}}
+.grid .bn{grid-column:span 2;aspect-ratio:2/1;align-self:start}
+.grid .bn:not(.art) {aspect-ratio:auto;min-height:190px}
 
 /* busca fixa */
 .bar-search{position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:20;background:var(--cream);border-bottom:1px solid var(--line);padding-block:8px}
@@ -243,12 +247,12 @@ main{padding-block:10px 120px}
 
 <section class="banners" aria-label="Destaques">
   <div class="wrap">
-    <div class="bwrap">
-      <button type="button" class="arrow prev" data-step="-1" aria-label="Destaque anterior">&lsaquo;</button>
-      <div class="track" id="track"></div>
-      <button type="button" class="arrow next" data-step="1" aria-label="Próximo destaque">&rsaquo;</button>
+    <div class="track" id="track"></div>
+    <div class="bnav">
+      <button type="button" class="arrow" data-step="-1" aria-label="Destaque anterior">&lsaquo;</button>
+      <div class="dots" id="dots"></div>
+      <button type="button" class="arrow" data-step="1" aria-label="Próximo destaque">&rsaquo;</button>
     </div>
-    <div class="dots" id="dots"></div>
   </div>
 </section>
 
@@ -382,7 +386,7 @@ main{padding-block:10px 120px}
    ação: {info:true} abre condições | {cat:"..."} | {pet:"gato"} | {line:"ffp"} | {goto:true}
 ========================================================= */
 var CONFIG = {
-  LOGO: "",
+  LOGO: "logo/funforpets-branco.png",
   IMG_BASE: "img/",
   VENDEDORAS: [
     { id: "ionara", nome: "Ionara", whatsapp: "" },
@@ -391,20 +395,20 @@ var CONFIG = {
 };
 
 var BANNERS = [
-  { id:"desconto", img:"", tema:"",
+  { id:"desconto", img:"banners/b1-desconto.jpg", tema:"",
     kicker:"Importados", titulo:"Até 30% de desconto", texto:"Até 20% pela faixa do pedido e mais 10% à vista.",
     botao:"Ver condições", acao:{info:true}, fotos:["13466","13471","13687"] },
-  { id:"mix", img:"", tema:"alt",
+  { id:"mix", img:"banners/b2-pedido-minimo.jpg", tema:"alt",
     kicker:"Compra do seu tamanho", titulo:"Pedido a partir de R$ 500", texto:"Sem caixa fechada. Você monta o mix item por item.",
     botao:"Montar cotação", acao:{goto:true}, fotos:["13631","13513","13692"] },
-  { id:"arranhadores", img:"", tema:"gold",
+  { id:"arranhadores", img:"banners/b3-arranhadores.jpg", tema:"gold",
     kicker:"Linha FunForPets", titulo:"Arranhadores com ticket alto", texto:"Peças de acabamento premium para ganhar mais por venda.",
     botao:"Ver arranhadores", acao:{cat:"Arranhadores"}, fotos:["13466","13468","13467"] },
-  { id:"gatos", img:"", tema:"alt",
+  { id:"gatos", img:"banners/b4-gatos.jpg", tema:"alt",
     kicker:"Para gatos", titulo:"{n} brinquedos para gatos", texto:"Varinhas, catnip, torres e bolinhas com som.",
     botao:"Ver brinquedos", acao:{pet:"gato", cat:"Brinquedos"}, fotos:["13692","13551","13695"] }
 ];
-var BANNER_MEIO = { id:"estoque", img:"", tema:"",
+var BANNER_MEIO = { id:"estoque", img:"banners/b5-envio.jpg", tema:"",
     kicker:"Estoque no Brasil", titulo:"Envio no dia seguinte", texto:"Preço em real, sem câmbio. Depósito próprio em Estrela/RS.",
     botao:"Ver condições", acao:{info:true}, fotos:["13697","13509","13600"] };
 
@@ -512,7 +516,7 @@ function bannerHtml(b, i){
   var inner = b.img
     ? '<img class="art" src="'+esc(b.img)+'" alt="" loading="'+(i>0?'lazy':'eager')+'"><span class="shade"></span>'
     : '<span class="pics">'+(b.fotos||[]).slice(0,3).map(function(s){ return '<img src="'+img(s)+'" alt="" loading="lazy">'; }).join("")+'</span>';
-  return '<button type="button" class="bn '+(b.tema||"")+'" data-banner="'+esc(b.id)+'" aria-label="'+esc(bannerTitle(b)+". "+b.texto)+'">'+inner+
+  return '<button type="button" class="bn '+(b.tema||"")+(b.img?' art':'')+'" data-banner="'+esc(b.id)+'" aria-label="'+esc(bannerTitle(b)+". "+b.texto)+'">'+inner+
     '<span class="txt"><span class="k">'+esc(b.kicker)+'</span><span class="t">'+esc(bannerTitle(b))+'</span><span class="d">'+esc(b.texto)+'</span><span class="c">'+esc(b.botao)+'</span></span></button>';
 }
 var ALL_BANNERS = {};
