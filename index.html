@@ -347,7 +347,7 @@ main{padding-block:10px 120px}
 
 <main id="produtos">
   <div class="wrap">
-    <div class="meta"><span id="count"></span><label class="ord">Ordenar <select id="ord" aria-label="Ordenar produtos"><option value="">Recomendados</option><option value="menor">Menor preço</option><option value="maior">Maior preço</option></select></label></div>
+    <div class="meta"><span id="count"></span><label class="ord">Ordenar <select id="ord" aria-label="Ordenar produtos"><option value="menor" selected>Menor preço</option><option value="maior">Maior preço</option><option value="">Recomendados</option></select></label></div>
     <div class="grid" id="grid"></div>
     <div class="more" id="moreWrap" hidden><button class="ghost" id="moreBtn" type="button">Ver mais produtos</button></div>
     <div class="empty" id="empty" hidden><b>Nenhum produto encontrado</b>Tente outro termo ou limpe os filtros.<br><button class="ghost" type="button" data-reset="1">Limpar filtros</button></div>
@@ -520,7 +520,7 @@ var UFS = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS 
 var PAGE = 24;
 
 var state = { q:"", pet:"todos", grp:"", cat:"", line:"", dest:"" };
-var ord = "";   /* ordem da grade: "" = recomendados, "menor" ou "maior" preço */
+var ord = "menor";   /* ordem da grade: "menor" (padrão) ou "maior" preço; "" = recomendados */
 var draft = null;
 var shown = PAGE;
 var cart = {};
