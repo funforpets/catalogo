@@ -1,10 +1,10 @@
 # Catálogo de cotação FunForPets: contexto para continuar o trabalho
 
-Atualizado em 06/10/2026 (filtros Mais vendidos e Novidades, setas nas fotos). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
+Atualizado em 06/10/2026 (filtros Mais vendidos e Novidades, setas nas fotos, preço no card). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
 
 ## O que é
 
-Site de catálogo de atacado, feito para o celular, com os importados (Its Pet e FunForPets) e a indústria (It's Natural e Mordidinhas Naturais). Não mostra preço. O lojista busca e filtra, adiciona produtos "à cotação", preenche os dados da loja e envia a lista pronta para o WhatsApp da vendedora. Substitui o flipbook do FlipHTML5 e foi pensado para tirar atrito do pedido. O visual segue a landing page de atacado (euamo.funforpets.com.br/revenda-atacado-produtos-pets-funforpets).
+Site de catálogo de atacado, feito para o celular, com os importados (Its Pet e FunForPets) e a indústria (It's Natural e Mordidinhas Naturais). Desde 06/10/2026 mostra o preço de tabela e o preço com desconto (antes não mostrava, e o retorno das vendedoras foi que a falta de preço atrapalhava). O lojista busca e filtra, adiciona produtos "à cotação", preenche os dados da loja e envia a lista pronta para o WhatsApp da vendedora. Substitui o flipbook do FlipHTML5 e foi pensado para tirar atrito do pedido. O visual segue a landing page de atacado (euamo.funforpets.com.br/revenda-atacado-produtos-pets-funforpets).
 
 - No ar: funforpets.github.io/catalogo
 - Domínio definitivo (pendente, ver abaixo): catalogo.funforpets.com.br
@@ -69,6 +69,27 @@ WHERE n.dt_emis>='2026-04-01' AND n.tipo_nf='S' AND n.situacao IN ('AB','DP')
   AND ISNULL(n.desc_equipe,'')<>'EQUIPE REPRE FFP'
 GROUP BY i.cd_prod ORDER BY fat DESC;
 ```
+
+## Preço no card (06/10/2026)
+
+- Embaixo do código vem o preço de tabela por unidade e as faixas de desconto da política v1.3, com o link "Ver condições do desconto", que abre a gaveta de descontos. O preço também aparece na foto ampliada.
+- Importados: preço, "20% off" (faixa de R$ 5.000 em importados) e "30% off" (faixa máxima mais 10% à vista). Indústria (It's Natural e Mordidinhas): preço e só "10% off à vista", porque a política limita o desconto da indústria a 10%.
+- Tabela de preço: **TBRPF, Tabela FunForPets Padrão**, a mesma que a Láuria usa, para importados e Mordidinhas. **It's Natural usa a TBRFP2, Tabela FunForPets Sem ST**, porque a prospecção é em SC, onde não tem ST (decisão da Gerência Comercial). Nos importados e nas Mordidinhas as duas tabelas têm o mesmo preço; só o It's Natural muda (a Sem ST é cerca de 17% mais alta).
+- O "/un." some quando o nome já diz a embalagem (pote com 50, display com 24, kit, unidades).
+- O preço fica no campo `pr` do `src/products.json`. A foto de preços de 06/10/2026 está em `src/precos-2026-10-06.txt` (SKU:preço). Para atualizar, rodar no Teia:
+
+```sql
+SELECT pr.cd_prod, MAX(CASE WHEN LTRIM(RTRIM(pr.cd_linha))='ITS' OR pr.descricao LIKE 'NATURA SNACKS%'
+         THEN CASE WHEN LTRIM(RTRIM(p.cd_tabela))='TBRFP2' THEN p.vl_preco END
+         ELSE CASE WHEN LTRIM(RTRIM(p.cd_tabela))='TBRPF' THEN p.vl_preco END END) preco
+FROM preco p JOIN produto pr ON pr.cd_prod=p.cd_prod
+WHERE LTRIM(RTRIM(p.cd_tabela)) IN ('TBRPF','TBRFP2')
+  AND LTRIM(RTRIM(pr.cd_fabric)) IN ('ITS IM','FUNFOR','FRN') AND pr.ativo=1
+GROUP BY pr.cd_prod;
+```
+
+  gravar o `pr` de cada produto, build e push. O preço continua fora do dataLayer e da mensagem do WhatsApp; a vendedora fecha o valor na conversa.
+- Cabeçalho: o selo ao lado do logo diz "COMPRE DIRETO DA FÁBRICA E IMPORTADORA" (antes "ATACADO"). O texto do topo passou a "A vendedora confirma estoque, prazo e frete pelo WhatsApp".
 
 ## Fotos no card
 

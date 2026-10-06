@@ -307,7 +307,7 @@ main{padding-block:10px 120px}
 <section class="hero">
   <div class="wrap">
     <h1>Monte sua cotação de atacado</h1>
-    <p>Escolha os produtos e as quantidades. A vendedora responde no WhatsApp com preços, prazo e frete.</p>
+    <p>Escolha os produtos e as quantidades. A vendedora confirma estoque, prazo e frete pelo WhatsApp.</p>
   </div>
 </section>
 
@@ -440,7 +440,7 @@ main{padding-block:10px 120px}
   <figure>
     <div class="picw" id="zPicw"><img id="zImg" alt=""></div>
     <div id="zThumbs"></div>
-    <figcaption><b id="zName"></b><span class="sku" id="zSku"></span><div id="zAct"></div><button class="link" id="zClose" type="button">Fechar</button></figcaption>
+    <figcaption><b id="zName"></b><span class="sku" id="zSku"></span><div id="zPrice"></div><div id="zAct"></div><button class="link" id="zClose" type="button">Fechar</button></figcaption>
   </figure>
 </div>
 <div class="wapick" id="waPick" role="dialog" aria-modal="true" aria-labelledby="waPickT" hidden>
@@ -562,12 +562,16 @@ function thumbsHtml(p, cur, attr){
 }
 function lineName(l){ return LINE_NAMES[l]||l; }
 function brl(v){ return v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+/* Preço de tabela (campo "pr" do products.json) e as faixas da política v1.3:
+   importados até 20% pela faixa do pedido + 10% à vista (teto 30%); indústria só 10% à vista. */
+function off(v,pct){ return Math.round(v*(100-pct))/100; }
 function priceHtml(p){
   if(!p.pr) return "";
-  return '<div class="price"><div class="pv"><small>R$</small>'+brl(p.pr)+'<span>/un.</span></div>'+
-    '<div class="pd"><i>20% off</i>R$ '+brl(Math.round(p.pr*80)/100)+'</div>'+
-    '<div class="pd b"><i>30% off</i>R$ '+brl(Math.round(p.pr*70)/100)+'</div>'+
-    '<button type="button" class="pcond" data-cond="1">Ver condições do desconto</button></div>';
+  var un = /pote com|display com|^kit |unidades|com \d+$/i.test(p.n) ? "" : "<span>/un.</span>";
+  var h = '<div class="price"><div class="pv"><small>R$</small>'+brl(p.pr)+un+'</div>';
+  if(p.grp==="ind") h += '<div class="pd b"><i>10% off à vista</i>R$ '+brl(off(p.pr,10))+'</div>';
+  else h += '<div class="pd"><i>20% off</i>R$ '+brl(off(p.pr,20))+'</div><div class="pd b"><i>30% off</i>R$ '+brl(off(p.pr,30))+'</div>';
+  return h+'<button type="button" class="pcond" data-cond="1">Ver condições do desconto</button></div>';
 }
 function onlyDigits(s){ return (s||"").replace(/\D/g,""); }
 function slug(s){ return norm(String(s||"")).replace(/['’]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""); }
@@ -924,6 +928,7 @@ document.addEventListener("click",function(e){
   if(d.banner){ runAction((ALL_BANNERS[d.banner]||{}).acao); }
   else if(d.step){ var tr=$("track"), w=tr.firstElementChild.offsetWidth+14; tr.scrollBy({left:(+d.step)*w,behavior:"smooth"}); }
   else if(d.dot){ var t=$("track"), it=t.children[+d.dot]; if(it) t.scrollTo({left:it.offsetLeft-16,behavior:"smooth"}); }
+  else if(d.cond){ if(!$("zoom").hidden) $("zoom").hidden=true; openSheet("isheet"); }
   else if(d.dest!==undefined && !d.f){ state.dest = state.dest===d.dest ? "" : d.dest; state.grp=""; state.cat=""; update(false); }
   else if(d.pn){ showPhoto(b.closest(".card"), d.pn, (+(b.closest(".card").dataset.k||1))+(+d.dir)); }
   else if(d.zpn){ showPhoto($("zoom"), d.zpn, (+($("zoom").dataset.k||1))+(+d.dir)); }
@@ -937,7 +942,7 @@ document.addEventListener("click",function(e){
   else if(d.dec){ if(cart[d.dec]){ var cd=qtyCtx(b,d.dec); setQty(d.dec,cart[d.dec]-1); A.qtyChange(bySku[d.dec], -1, cd.src, cd.i, cd.list); } }
   else if(d.ph){ showPhoto(b.closest(".card"), d.ph, +d.k); }
   else if(d.zph){ showPhoto($("zoom"), d.zph, +d.k); }
-  else if(d.zoom){ var p=bySku[d.zoom], cardEl=b.closest(".card"), kz=cardEl&&cardEl.dataset.k?+cardEl.dataset.k:1; $("zImg").src=photo(p.s,kz); $("zThumbs").innerHTML=thumbsHtml(p,kz,"data-zph"); $("zoom").dataset.k=kz; [].forEach.call($("zPicw").querySelectorAll(".pnav,.pcount"),function(x){ x.remove(); }); $("zPicw").insertAdjacentHTML("beforeend", navHtml(p,kz,"data-zpn")); $("zImg").alt=p.n; $("zName").textContent=p.n; $("zSku").innerHTML='Cód. <b>'+p.s+'</b> · '+esc(lineName(p.l)); $("zAct").dataset.s=p.s; $("zAct").innerHTML=actHtml(p); $("zoom").hidden=false; $("zClose").focus(); }
+  else if(d.zoom){ var p=bySku[d.zoom], cardEl=b.closest(".card"), kz=cardEl&&cardEl.dataset.k?+cardEl.dataset.k:1; $("zImg").src=photo(p.s,kz); $("zThumbs").innerHTML=thumbsHtml(p,kz,"data-zph"); $("zoom").dataset.k=kz; [].forEach.call($("zPicw").querySelectorAll(".pnav,.pcount"),function(x){ x.remove(); }); $("zPicw").insertAdjacentHTML("beforeend", navHtml(p,kz,"data-zpn")); $("zImg").alt=p.n; $("zName").textContent=p.n; $("zSku").innerHTML='Cód. <b>'+p.s+'</b> · '+esc(lineName(p.l)); $("zPrice").innerHTML=priceHtml(p); $("zAct").dataset.s=p.s; $("zAct").innerHTML=actHtml(p); $("zoom").hidden=false; $("zClose").focus(); }
   else if(d.close){ closeSheets(d.how); if(d.goto) goToProducts(); }
 });
 document.addEventListener("change",function(e){
