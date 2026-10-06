@@ -138,7 +138,9 @@ button{cursor:pointer}
 
 /* grade */
 main{padding-block:10px 120px}
-.meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:10px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:10px}
+.ord{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.ord select{appearance:none;-webkit-appearance:none;border:1px solid #cfdbe4;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23152d4d' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center/12px;border-radius:9px;padding:7px 28px 7px 10px;font-weight:800;font-size:13px;color:var(--ink)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 @media (min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}
 @media (min-width:960px){.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
@@ -345,7 +347,7 @@ main{padding-block:10px 120px}
 
 <main id="produtos">
   <div class="wrap">
-    <div class="meta"><span id="count"></span></div>
+    <div class="meta"><span id="count"></span><label class="ord">Ordenar <select id="ord" aria-label="Ordenar produtos"><option value="">Recomendados</option><option value="menor">Menor preço</option><option value="maior">Maior preço</option></select></label></div>
     <div class="grid" id="grid"></div>
     <div class="more" id="moreWrap" hidden><button class="ghost" id="moreBtn" type="button">Ver mais produtos</button></div>
     <div class="empty" id="empty" hidden><b>Nenhum produto encontrado</b>Tente outro termo ou limpe os filtros.<br><button class="ghost" type="button" data-reset="1">Limpar filtros</button></div>
@@ -518,6 +520,7 @@ var UFS = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS 
 var PAGE = 24;
 
 var state = { q:"", pet:"todos", grp:"", cat:"", line:"", dest:"" };
+var ord = "";   /* ordem da grade: "" = recomendados, "menor" ou "maior" preço */
 var draft = null;
 var shown = PAGE;
 var cart = {};
@@ -589,9 +592,9 @@ function currentList(){
   else if(state.grp){ ids.push(slug(grpName(state.grp))); names.push(grpName(state.grp)); }
   if(state.pet!=="todos"){ var pl=PET_LABEL[state.pet]; ids.push(slug(pl)); names.push(pl); }
   if(state.line){ ids.push(slug(lineName(state.line))); names.push(lineName(state.line)); }
-  if(!ids.length) return { id:"catalogo_geral", name:"Catálogo Geral", key:"catalogo_geral" };
+  if(!ids.length) return { id:"catalogo_geral", name:"Catálogo Geral", key:"catalogo_geral|"+ord };
   var id=ids.join("__");
-  return { id:id, name:names.join(" · "), key:id+"|"+norm(state.q).trim() };
+  return { id:id, name:names.join(" · "), key:id+"|"+norm(state.q).trim()+"|"+ord };
 }
 function listPos(s){ var i=filtered().indexOf(bySku[s]); return { list:currentList(), i:i<0?null:i }; }
 /* origem do clique em + / − ou do número digitado */
@@ -667,6 +670,7 @@ function filtered(st){
   var l = PRODUCTS.filter(function(p){ return match(p, st); });
   if(st.dest==="mv") l.sort(function(a,b){ return a.mv-b.mv; });
   if(st.dest==="nov") l.sort(function(a,b){ return (+b.s)-(+a.s); });
+  if(ord){ var sg=ord==="menor"?1:-1; l.sort(function(a,b){ if(!a.pr||!b.pr) return (a.pr?0:1)-(b.pr?0:1); return sg*(a.pr-b.pr); }); }
   return l;
 }
 function activeCount(){ return (state.pet!=="todos"?1:0)+(state.cat?1:0)+(state.grp&&!state.cat?1:0)+(state.line?1:0)+(state.dest?1:0); }
@@ -968,6 +972,7 @@ document.addEventListener("touchend",function(e){
   if(swX===null) return; var t=e.changedTouches[0], dx=t.clientX-swX, dy=t.clientY-swY; swX=null;
   if(Math.abs(dx)>35 && Math.abs(dx)>Math.abs(dy)*1.3) showPhoto(swBox, swS, (+(swBox.dataset.k||1))+(dx<0?1:-1));
 },{passive:true});
+$("ord").addEventListener("change",function(){ ord=this.value; shown=PAGE; renderGrid(); });
 var qt; $("q").addEventListener("input",function(){ clearTimeout(qt); var v=this.value; qt=setTimeout(function(){ state.q=v; update(false); },150); });
 $("q").addEventListener("focus",function(){ var top=$("toolbar").getBoundingClientRect().top; if(top>70) goToProducts(); });
 $("qClear").onclick=function(){ $("q").value=""; state.q=""; update(false); $("q").focus(); };

@@ -75,6 +75,7 @@ GROUP BY i.cd_prod ORDER BY fat DESC;
 - Embaixo do código vem o preço de tabela por unidade e as faixas de desconto da política v1.3, com o link "Ver condições do desconto", que abre a gaveta de descontos. O preço também aparece na foto ampliada.
 - Importados: preço, "20% off" (faixa de R$ 5.000 em importados) e "30% off" (faixa máxima mais 10% à vista). Indústria (It's Natural e Mordidinhas): preço e só "10% off à vista", porque a política limita o desconto da indústria a 10%.
 - Tabela de preço: **TBRPF, Tabela FunForPets Padrão**, a mesma que a Láuria usa, para importados e Mordidinhas. **It's Natural usa a TBRFP2, Tabela FunForPets Sem ST**, porque a prospecção é em SC, onde não tem ST (decisão da Gerência Comercial). Nos importados e nas Mordidinhas as duas tabelas têm o mesmo preço; só o It's Natural muda (a Sem ST é cerca de 17% mais alta).
+- Seletor "Ordenar" ao lado da contagem de produtos: Recomendados (ordem padrão; em Mais vendidos segue o ranking, em Novidades o SKU mais novo primeiro), Menor preço e Maior preço. Vale junto com qualquer filtro. A troca de ordem reinicia a contagem de posições do `view_item_list`.
 - O "/un." some quando o nome já diz a embalagem (pote com 50, display com 24, kit, unidades).
 - O preço fica no campo `pr` do `src/products.json`. A foto de preços de 06/10/2026 está em `src/precos-2026-10-06.txt` (SKU:preço). Para atualizar, rodar no Teia:
 
