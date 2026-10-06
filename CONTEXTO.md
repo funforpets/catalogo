@@ -1,6 +1,6 @@
 # Catálogo de cotação FunForPets: contexto para continuar o trabalho
 
-Atualizado em 06/10/2026. Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
+Atualizado em 06/10/2026 (filtros Mais vendidos e Novidades, setas nas fotos). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
 
 ## O que é
 
@@ -23,10 +23,10 @@ Sem nada no fim do link, o cliente escolhe entre Ionara, Camila ou "Tanto faz" (
 ## Como o site está montado
 
 - `src/template.html`: a página inteira (HTML, CSS e JS) com o marcador `__DATA__` no lugar da lista de produtos.
-- `src/products.json`: os 237 produtos (216 importados, 11 It's Natural, 10 Mordidinhas). Os campos estão explicados no topo de `src/build.py`.
+- `src/products.json`: 302 produtos cadastrados (237 no ar e os 65 novos da Its Pet esperando foto). Os campos estão explicados no topo de `src/build.py`. Produto sem `img/SKU.jpg` fica fora do site automaticamente até a foto chegar.
 - `python3 src/build.py` gera o `index.html` da raiz. Nunca editar o `index.html` direto, sempre o template ou o json e rodar o build.
 - `analytics.js`: único arquivo que escreve no dataLayer (GTM/GA4). Documentação dos eventos em `TRACKING.md`.
-- `img/SKU.jpg` é a foto principal (640x640), `img/SKU-2.jpg` a `-4.jpg` são a galeria e `img/t/SKU-k.jpg` as miniaturas (110x110). `python3 src/fotos.py SKU foto1 foto2...` prepara tudo a partir das fotos originais.
+- `img/SKU.jpg` é a foto principal (640x640), `img/SKU-2.jpg` em diante são a galeria e `img/t/SKU-k.jpg` as miniaturas (110x110). Desde out/2026 o máximo é 3 fotos por produto (os antigos têm até 4). `python3 src/fotos.py SKU foto1 foto2 foto3` prepara um produto; `python3 src/fotos_lote.py "/pasta/Fotos"` procura na pasta os arquivos que começam pelo SKU de todos os produtos sem foto e prepara de uma vez, já acertando o campo `g`.
 - `banners/b1` a `b7`: artes do carrossel (1200x600, sem texto, o texto vai no HTML). O carrossel gira a cada 5 s.
 - `logo/funforpets-branco.png`: logo do topo.
 - `src/teste-datalayer.js` e `src/teste-whatsapp-desktop.js`: testes automáticos (Playwright) do funil de medição e do envio pelo computador.
@@ -47,6 +47,35 @@ Para publicar: rodar o build, `git commit` e `git push` na main. O GitHub leva m
 - No computador, o botão de envio abre uma janela com WhatsApp Web (principal), aplicativo ou copiar a mensagem. Motivo: o link wa.me no aplicativo de desktop às vezes abre "encaminhar para" em vez da conversa. No celular abre direto.
 - Formulário: nome da loja, CNPJ (com validação), seu nome, e-mail e WhatsApp (obrigatórios, pedidos pelo gerente de tráfego para conversões otimizadas), cidade e UF.
 
+## Mais vendidos e Novidades (out/2026)
+
+- Linha de destaque acima das seções com dois botões, "Mais vendidos" e "Novidades", também na gaveta de filtros (grupo "Destaques"). Combina com o filtro de pet e de categoria. Tocar num destaque limpa seção e categoria para mostrar a lista inteira.
+- Os produtos dessas listas ganham um selo sobre a foto ("Mais vendido" em amarelo, "Novidade" em azul-marinho).
+- **Mais vendidos** = os 50 produtos do catálogo com maior faturamento de 01/04/2026 a 06/10/2026, aparecem em ordem de ranking (campo `mv`, 1 a 50). Regra de venda efetiva da casa (`tipo_nf='S'`, situação AB/DP, `tp_ped` VE/MK/SH/ML/RF/SC, sem bonificação, descontando devolução) e os filtros do painel t3-comercial: fora vendedor INTERNO, ECOMMERCE e INADIMPLENTES e fora a EQUIPE REPRE FFP. Produtos fora do catálogo (Mordidinhas Crispy e Tradicionais) não entram na conta.
+- **Novidades** = produtos cadastrados no ERP a partir de 01/06/2026 (campo `nov`): o 14200 (Mordidinhas lascas de fígado suíno) e os 65 da Its Pet (14256 e 14378 a 14441). Aparecem do SKU mais novo para o mais antigo. Os 65 só entram no ar quando as fotos forem preparadas.
+- Para atualizar o ranking: rodar a consulta abaixo no Teia (connection_id 1), pegar os 50 primeiros SKUs que existem no `products.json`, gravar `mv` neles (e tirar dos outros), build e push.
+
+```sql
+SELECT i.cd_prod,
+  SUM(i.vl_tot_liquido - CASE WHEN ISNULL(i.qtde_dev,0)>0 AND i.qtde_est>0
+      THEN i.qtde_dev*ISNULL(i.fator_est_vda,1)*i.vl_tot_liquido/i.qtde_est ELSE 0 END) fat
+FROM nota n JOIN ped_vda p ON p.nu_ped=n.nu_ped AND p.cd_emp=n.cd_emp
+JOIN it_nota i ON i.nu_nf=n.nu_nf JOIN produto pr ON pr.cd_prod=i.cd_prod
+LEFT JOIN vendedor v ON LTRIM(RTRIM(v.cd_vend))=LTRIM(RTRIM(n.cd_vend)) AND v.cd_emp=n.cd_emp
+WHERE n.dt_emis>='2026-04-01' AND n.tipo_nf='S' AND n.situacao IN ('AB','DP')
+  AND p.tp_ped IN ('VE','MK','SH','ML','RF','SC') AND i.bonificado=0
+  AND LTRIM(RTRIM(pr.cd_fabric)) IN ('ITS IM','FUNFOR','FRN')
+  AND ISNULL(LTRIM(RTRIM(v.nome)),'') NOT IN ('INTERNO','ECOMMERCE','INADIMPLENTES')
+  AND ISNULL(n.desc_equipe,'')<>'EQUIPE REPRE FFP'
+GROUP BY i.cd_prod ORDER BY fat DESC;
+```
+
+## Fotos no card
+
+- Produto com mais de uma foto mostra setas dos dois lados da foto e um contador (1/3) no canto. A seta passa a foto sem abrir a ampliação. Arrastar o dedo para o lado na foto também passa. As miniaturas embaixo continuam.
+- Na foto ampliada as setas também aparecem, e no computador as setas do teclado passam a foto.
+- A lista de medição (`item_list_id`) ganhou `mais_vendidos` e `novidades`.
+
 ## Medição (GTM/GA4)
 
 - Contêiner GTM-MXBCVCT5 instalado.
@@ -58,7 +87,7 @@ Para publicar: rodar o build, `git commit` e `git push` na main. O GitHub leva m
 ## Pendências
 
 1. **Domínio próprio.** Falta criar no Cloudflare um CNAME `catalogo` apontando para `funforpets.github.io`, com a nuvem cinza (DNS only). Depois disso o Claude coloca o domínio no repositório (arquivo CNAME ou Settings > Pages) e confere o https. Não configurar o domínio no GitHub antes do DNS existir, senão o site cai. Fazer isso antes de as vendedoras espalharem os links: o endereço antigo redireciona sozinho, mas a lista salva no aparelho do cliente não passa de um endereço para o outro.
-2. **65 produtos novos da Its Pet sem foto.** Cadastrados no ERP entre 01/07 e 31/08/2026, ativos e quase todos com estoque (o 14256 está com estoque zero). A lista com categoria e pet sugeridos está em `src/produtos-faltando-2026-10-06.csv`. Não há fotos deles na pasta Fotos. Assim que as fotos chegarem: rodar `src/fotos.py` para cada SKU, incluir os produtos no `src/products.json` com nome amigável, rodar o build e publicar. Três são bebedouros para roedores, e o filtro de pet hoje só tem cães e gatos.
+2. **65 produtos novos da Its Pet sem foto.** Cadastrados no ERP entre 01/07 e 31/08/2026, ativos e quase todos com estoque (o 14256 está com estoque zero). Já estão no `src/products.json` com nome amigável, categoria, pet e marcados como novidade; ficam fora do site só porque não têm foto. Em 06/10/2026 a Gerência Comercial disse que as fotos estavam na pasta Fotos com o SKU no nome, mas nenhuma das duas pastas Fotos (Drive DZ Pets e Materiais de Vendas) tinha arquivo desses SKUs, só o vídeo 14418.mp4 e duas fotos "luva-magica-01/02" sem SKU no nome. Quando as fotos aparecerem: `python3 src/fotos_lote.py "/pasta/Fotos"`, `python3 src/build.py`, commit e push. Os três bebedouros para roedores entram com pet "roedor", e o filtro de pet ganha "Roedores" sozinho quando eles estiverem no ar.
 3. Ajustes de filtros e categorias que a Gerência Comercial ia passar.
 4. Banner de cookies: o site não tem. Se entrar, ligar o Consent Mode já preparado no `analytics.js` (`consentDefault` e `consentGrant`).
 5. Contato perdido: e-mail e WhatsApp digitados só vão para o Google e para o aparelho do cliente. Se ele preencher e não mandar a mensagem, a equipe não fica sabendo. Opção em aberto: mandar também para o RD Station.

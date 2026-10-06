@@ -127,6 +127,13 @@ button{cursor:pointer}
 .chip{flex:none;border:1px solid #cfdbe4;background:var(--card);border-radius:999px;padding:7px 13px;font-weight:800;font-size:13px;color:#4d6178;white-space:nowrap}
 .chip[aria-pressed="true"]{background:var(--its-bg);border-color:#9ed9e8;color:var(--its-ink)}
 .chip .n{font-weight:700;opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+/* destaques: mais vendidos e novidades */
+.hl{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid #e9c77a;background:#fff8e6;border-radius:999px;padding:7px 14px 7px 11px;font-weight:900;font-size:13px;color:#7a520b;white-space:nowrap}
+.hl svg{width:16px;height:16px;flex:none}
+.hl.nov{border-color:#b9cbe2;background:#eef3fa;color:var(--navy)}
+.hl[aria-pressed="true"]{background:var(--yellow);border-color:var(--yellow-shadow);color:#182a42}
+.hl.nov[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.hl .n{font-weight:700;opacity:.75;font-variant-numeric:tabular-nums}
 
 /* grade */
 main{padding-block:10px 120px}
@@ -145,6 +152,15 @@ main{padding-block:10px 120px}
 .thumbs button[aria-current="true"]{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
 .thumbs img{width:100%;height:100%;object-fit:contain;display:block}
 .zoom .thumbs{padding:8px 14px 0;gap:8px}
+/* setas para passar as fotos no card e na foto ampliada */
+.picw{position:relative}
+.pnav{position:absolute;top:50%;z-index:2;transform:translateY(-50%);width:26px;height:26px;border:0;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 1px 5px rgba(19,35,58,.28);color:var(--navy);display:grid;place-items:center;padding:0}
+.pnav svg{width:14px;height:14px}
+.pnav.l{left:6px}.pnav.r{right:6px}
+.pnav:active{background:var(--chip)}
+.zoom .pnav{width:38px;height:38px}
+.zoom .pnav svg{width:19px;height:19px}
+.pcount{position:absolute;bottom:7px;right:8px;z-index:2;background:rgba(19,35,58,.72);color:#fff;font-size:10px;font-weight:900;border-radius:999px;padding:2px 7px;pointer-events:none;font-variant-numeric:tabular-nums}
 .zoom .thumbs button{width:52px;height:52px}
 .body{padding:10px 11px 12px;display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
 .tags{display:flex;flex-wrap:wrap;gap:4px}
@@ -153,6 +169,10 @@ main{padding-block:10px 120px}
 .tag.ffp{background:var(--premium-bg);color:var(--premium-ink)}
 .tag.nat,.tag.mor{background:var(--nat-bg);color:var(--nat-ink)}
 .tag.var{background:var(--chip);color:var(--muted);letter-spacing:.3px}
+.badges{position:absolute;top:7px;left:7px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:4px;pointer-events:none}
+.badge{font-size:10px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;border-radius:6px;padding:3px 7px;box-shadow:0 1px 3px rgba(19,35,58,.18)}
+.badge.mv{background:var(--yellow);color:#182a42}
+.badge.nov{background:var(--navy);color:#fff}
 .card h3{font-size:14px;line-height:1.25;margin:0;font-weight:800;overflow-wrap:anywhere}
 .sku{font-size:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
 .sku b{color:var(--ink);font-weight:900}
@@ -309,7 +329,7 @@ main{padding-block:10px 120px}
 </div>
 
 <section class="cats" aria-label="Categorias">
-  <div class="wrap"><div class="row" id="rowGrp"></div><div class="row" id="rowCat"></div></div>
+  <div class="wrap"><div class="row" id="rowDest"></div><div class="row" id="rowGrp"></div><div class="row" id="rowCat"></div></div>
 </section>
 
 <main id="produtos">
@@ -407,7 +427,7 @@ main{padding-block:10px 120px}
 
 <div class="zoom" id="zoom" hidden>
   <figure>
-    <img id="zImg" alt="">
+    <div class="picw" id="zPicw"><img id="zImg" alt=""></div>
     <div id="zThumbs"></div>
     <figcaption><b id="zName"></b><span class="sku" id="zSku"></span><div id="zAct"></div><button class="link" id="zClose" type="button">Fechar</button></figcaption>
   </figure>
@@ -478,20 +498,24 @@ var GROUPS = [
 var CATS = [], CAT_GRP = {};
 GROUPS.forEach(function(g){ g.cats.forEach(function(c){ CATS.push(c); CAT_GRP[c]=g.id; }); });
 function grpName(id){ var g=GROUPS.filter(function(x){ return x.id===id; })[0]; return g?g.nome:""; }
-var PETS = [["todos","Todos"],["cao","Cães"],["gato","Gatos"]];
+var PETS = [["todos","Todos"],["cao","Cães"],["gato","Gatos"],["roedor","Roedores"]];
+/* destaques: "mv" = posição no ranking dos 50 mais vendidos; "nov" = novidade (cadastro recente no ERP).
+   Os dois campos vêm do products.json. Ver CONTEXTO.md para o critério e como atualizar. */
+var DEST = { mv:{ nome:"Mais vendidos", tag:"Mais vendido", id:"mais_vendidos" }, nov:{ nome:"Novidades", tag:"Novidade", id:"novidades" } };
 var LINE_NAMES = { its:"Its Pet", ffp:"FunForPets", nat:"It's Natural", mor:"Mordidinhas" };
 var UFS = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split(" ");
 var PAGE = 24;
 
-var state = { q:"", pet:"todos", grp:"", cat:"", line:"" };
+var state = { q:"", pet:"todos", grp:"", cat:"", line:"", dest:"" };
 var draft = null;
 var shown = PAGE;
 var cart = {};
 var bySku = {};
 var seller = null;
-var PET_LABEL = { cao:"Cães", gato:"Gatos", ambos:"Cães e gatos" };
+var PET_LABEL = { cao:"Cães", gato:"Gatos", ambos:"Cães e gatos", roedor:"Roedores" };
 PRODUCTS.forEach(function(p){ bySku[p.s]=p; p.k = norm(p.n+" "+p.s+" "+(p.x||"")+" "+p.c+" "+lineName(p.l));
   p.brand = lineName(p.l); p.secao = grpName(p.grp); p.pet = PET_LABEL[p.p] || ""; });
+PETS = PETS.filter(function(x){ return x[0]!=="roedor" || PRODUCTS.some(function(p){ return p.p==="roedor"; }); });
 var LINES = ["its","ffp"].filter(function(l){ return PRODUCTS.some(function(p){ return p.l===l; }); });
 
 function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
@@ -500,6 +524,25 @@ function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&am
 function img(s){ return CONFIG.IMG_BASE + s + ".jpg"; }
 function photo(s,k){ return k>1 ? CONFIG.IMG_BASE + s + "-" + k + ".jpg" : img(s); }
 function thumb(s,k){ return CONFIG.IMG_BASE + "t/" + s + "-" + k + ".jpg"; }
+var SETA = { l:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>',
+             r:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>' };
+function navHtml(p, cur, attr){
+  var g=p.g||1; if(g<2) return "";
+  return '<button type="button" class="pnav l" '+attr+'="'+p.s+'" data-dir="-1" aria-label="Foto anterior">'+SETA.l+'</button>'+
+         '<button type="button" class="pnav r" '+attr+'="'+p.s+'" data-dir="1" aria-label="Próxima foto">'+SETA.r+'</button>'+
+         '<span class="pcount">'+cur+'/'+g+'</span>';
+}
+/* troca a foto de um card (ou da foto ampliada) e acerta miniatura, contador e posição guardada */
+function showPhoto(box, s, k){
+  var p=bySku[s], g=p.g||1; k=((k-1+g)%g)+1;
+  var isZoom = box.id==="zoom";
+  (isZoom ? $("zImg") : box.querySelector(".pic img")).src = photo(s,k);
+  box.dataset.k = k;
+  var th = isZoom ? $("zThumbs") : box.querySelector(".thumbs");
+  if(th) [].forEach.call(th.querySelectorAll("button"),function(x){ x.setAttribute("aria-current", +x.dataset.k===k); });
+  var c = box.querySelector(".pcount"); if(c) c.textContent = k+"/"+g;
+  if(isZoom){ var card=document.querySelector('[data-card="'+s+'"]'); if(card) showPhoto(card, s, k); }
+}
 function thumbsHtml(p, cur, attr){
   var g=p.g||1; if(g<2) return "";
   var h='<div class="thumbs">';
@@ -517,10 +560,11 @@ var A = window.FFPAnalytics || (function(){ var o={}; ["viewItemList","resetList
 function rows(){ return Object.keys(cart).map(function(s){ return { p:bySku[s], qty:cart[s] }; }); }
 function currentList(){
   var ids=[], names=[];
+  if(state.dest){ ids.push(DEST[state.dest].id); names.push(DEST[state.dest].nome); }
   if(state.q){ ids.push("busca"); names.push("Busca"); }
   if(state.cat){ ids.push(slug(state.cat)); names.push(state.cat); }
   else if(state.grp){ ids.push(slug(grpName(state.grp))); names.push(grpName(state.grp)); }
-  if(state.pet!=="todos"){ var pl=state.pet==="cao"?"Cães":"Gatos"; ids.push(slug(pl)); names.push(pl); }
+  if(state.pet!=="todos"){ var pl=PET_LABEL[state.pet]; ids.push(slug(pl)); names.push(pl); }
   if(state.line){ ids.push(slug(lineName(state.line))); names.push(lineName(state.line)); }
   if(!ids.length) return { id:"catalogo_geral", name:"Catálogo Geral", key:"catalogo_geral" };
   var id=ids.join("__");
@@ -590,16 +634,34 @@ function match(p, st, ignore){
   if(ignore!=="grp" && st.grp && p.grp!==st.grp) return false;
   if(ignore!=="cat" && st.cat && p.c!==st.cat) return false;
   if(ignore!=="line" && st.line && p.l!==st.line) return false;
+  if(ignore!=="dest" && st.dest && !p[st.dest]) return false;
   return true;
 }
-function filtered(st){ return PRODUCTS.filter(function(p){ return match(p, st); }); }
-function activeCount(){ return (state.pet!=="todos"?1:0)+(state.cat?1:0)+(state.grp&&!state.cat?1:0)+(state.line?1:0); }
+function filtered(st){
+  st = st || state;
+  var l = PRODUCTS.filter(function(p){ return match(p, st); });
+  if(st.dest==="mv") l.sort(function(a,b){ return a.mv-b.mv; });
+  if(st.dest==="nov") l.sort(function(a,b){ return (+b.s)-(+a.s); });
+  return l;
+}
+function activeCount(){ return (state.pet!=="todos"?1:0)+(state.cat?1:0)+(state.grp&&!state.cat?1:0)+(state.line?1:0)+(state.dest?1:0); }
+function renderDest(){
+  var ico = { mv:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>',
+              nov:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9zM5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8-1.8-.7 1.8-.7z"/></svg>' };
+  var h="";
+  ["mv","nov"].forEach(function(k){
+    var n=PRODUCTS.filter(function(p){ return p[k] && match(p,{q:state.q,pet:state.pet,grp:"",cat:"",line:state.line,dest:""}); }).length;
+    if(!n && state.dest!==k) return;
+    h+='<button type="button" class="hl '+k+'" data-dest="'+k+'" aria-pressed="'+(state.dest===k)+'">'+ico[k]+esc(DEST[k].nome)+'<span class="n">'+n+'</span></button>';
+  });
+  $("rowDest").innerHTML=h; $("rowDest").hidden=!h;
+}
 
 function renderCats(){
   var baseG = PRODUCTS.filter(function(p){ return match(p, state, "cat"); });
-  var g='<div class="seg" role="group" aria-label="Seção"><button type="button" data-grp="" aria-pressed="'+(!state.grp)+'">Tudo<span class="n">'+PRODUCTS.filter(function(p){ return match(p,{q:state.q,pet:state.pet,grp:"",cat:"",line:state.line}); }).length+'</span></button>';
+  var g='<div class="seg" role="group" aria-label="Seção"><button type="button" data-grp="" aria-pressed="'+(!state.grp)+'">Tudo<span class="n">'+PRODUCTS.filter(function(p){ return match(p,{q:state.q,pet:state.pet,grp:"",cat:"",line:state.line,dest:state.dest}); }).length+'</span></button>';
   GROUPS.forEach(function(x){
-    var n=PRODUCTS.filter(function(p){ return p.grp===x.id && match(p,{q:state.q,pet:state.pet,grp:"",cat:"",line:state.line}); }).length;
+    var n=PRODUCTS.filter(function(p){ return p.grp===x.id && match(p,{q:state.q,pet:state.pet,grp:"",cat:"",line:state.line,dest:state.dest}); }).length;
     g+='<button type="button" data-grp="'+x.id+'" aria-pressed="'+(state.grp===x.id)+'">'+esc(x.nome)+'<span class="n">'+n+'</span></button>';
   });
   $("rowGrp").innerHTML = g+'</div>';
@@ -614,7 +676,8 @@ function renderCats(){
 }
 function renderActive(){
   var h="";
-  if(state.pet!=="todos") h+='<button type="button" class="achip" data-clear="pet">'+(state.pet==="cao"?"Cães":"Gatos")+'<i aria-hidden="true">&times;</i></button>';
+  if(state.dest) h+='<button type="button" class="achip" data-clear="dest">'+esc(DEST[state.dest].nome)+'<i aria-hidden="true">&times;</i></button>';
+  if(state.pet!=="todos") h+='<button type="button" class="achip" data-clear="pet">'+esc(PET_LABEL[state.pet])+'<i aria-hidden="true">&times;</i></button>';
   if(state.line) h+='<button type="button" class="achip" data-clear="line">'+esc(lineName(state.line))+'<i aria-hidden="true">&times;</i></button>';
   if(state.grp && !state.cat) h+='<button type="button" class="achip" data-clear="grp">'+esc(grpName(state.grp))+'<i aria-hidden="true">&times;</i></button>';
   if(state.cat) h+='<button type="button" class="achip" data-clear="cat">'+esc(state.cat)+'<i aria-hidden="true">&times;</i></button>';
@@ -626,12 +689,16 @@ function renderActive(){
 function renderFilterSheet(){
   var st=draft, base;
   function opt(group,val,label,on,n){ return '<button type="button" class="chip" data-f="'+group+'" data-v="'+esc(val)+'" aria-pressed="'+on+'">'+esc(label)+(n!==undefined?'<span class="n">'+n+'</span>':'')+'</button>'; }
-  var h='<div class="fgroup"><h3>Para</h3><div class="opts">';
+  var h='<div class="fgroup"><h3>Destaques</h3><div class="opts">';
+  base=PRODUCTS.filter(function(p){ return match(p, st, "dest"); });
+  h+=opt("dest","","Todos",!st.dest,base.length);
+  ["mv","nov"].forEach(function(k){ var n=base.filter(function(p){ return p[k]; }).length; if(n||st.dest===k) h+=opt("dest",k,DEST[k].nome,st.dest===k,n); });
+  h+='</div></div><div class="fgroup"><h3>Para</h3><div class="opts">';
   base=PRODUCTS.filter(function(p){ return match(p, st, "pet"); });
   PETS.forEach(function(x){ var n = x[0]==="todos"?base.length:base.filter(function(p){ return p.p===x[0]||p.p==="ambos"; }).length; h+=opt("pet",x[0],x[1],st.pet===x[0],n); });
   h+='</div></div><div class="fgroup"><h3>Seção</h3><div class="opts">';
   base=PRODUCTS.filter(function(p){ return match(p, st, "cat"); });
-  var baseAll=PRODUCTS.filter(function(p){ return match(p,{q:st.q,pet:st.pet,grp:"",cat:"",line:st.line}); });
+  var baseAll=PRODUCTS.filter(function(p){ return match(p,{q:st.q,pet:st.pet,grp:"",cat:"",line:st.line,dest:st.dest}); });
   h+=opt("grp","","Tudo",!st.grp,baseAll.length);
   GROUPS.forEach(function(x){ h+=opt("grp",x.id,x.nome,st.grp===x.id,baseAll.filter(function(p){ return p.grp===x.id; }).length); });
   h+='</div></div><div class="fgroup"><h3>Marca dos importados</h3><div class="opts">';
@@ -652,7 +719,7 @@ function renderFilterSheet(){
 /* ---- banners ---- */
 function bannerTitle(b){
   if(b.titulo.indexOf("{n}")<0) return b.titulo;
-  var a=b.acao||{}, n=PRODUCTS.filter(function(p){ return match(p,{q:"",pet:a.pet||"todos",grp:a.grp||"",cat:a.cat||"",line:a.line||""}); }).length;
+  var a=b.acao||{}, n=PRODUCTS.filter(function(p){ return match(p,{q:"",pet:a.pet||"todos",grp:a.grp||"",cat:a.cat||"",line:a.line||"",dest:a.dest||""}); }).length;
   return b.titulo.replace("{n}",n);
 }
 function bannerHtml(b, i){
@@ -676,7 +743,7 @@ function onTrackScroll(){
 function runAction(a){
   a=a||{};
   if(a.info){ openSheet("isheet"); return; }
-  if(a.pet||a.cat||a.line||a.grp){ state.pet=a.pet||"todos"; state.cat=a.cat||""; state.grp=a.cat?CAT_GRP[a.cat]:(a.grp||""); state.line=a.line||""; state.q=""; $("q").value=""; update(true); return; }
+  if(a.pet||a.cat||a.line||a.grp||a.dest){ state.pet=a.pet||"todos"; state.cat=a.cat||""; state.grp=a.cat?CAT_GRP[a.cat]:(a.grp||""); state.line=a.line||""; state.dest=a.dest||""; state.q=""; $("q").value=""; update(true); return; }
   goToProducts();
 }
 function goToProducts(){ var y=$("toolbar").getBoundingClientRect().top + window.scrollY - (56); window.scrollTo(0, Math.max(0,y)); }
@@ -691,10 +758,12 @@ function actHtml(p){
 }
 function cardHtml(p){
   var tags = '<span class="tag '+p.l+'">'+esc(lineName(p.l))+'</span>';
+  var badges = (p.mv?'<span class="badge mv">'+DEST.mv.tag+'</span>':'')+(p.nov?'<span class="badge nov">'+DEST.nov.tag+'</span>':'');
+  if(badges) badges='<span class="badges">'+badges+'</span>';
   if(p.x && /sortid|acompanha/i.test(p.x)) tags += '<span class="tag var">'+esc(p.x)+'</span>';
   if(p.cx) tags += '<span class="tag var">Caixa com '+p.cx+'</span>';
   return '<article class="card'+(cart[p.s]?' in':'')+'" data-card="'+p.s+'">'+
-    '<button type="button" class="pic" data-zoom="'+p.s+'" aria-label="Ampliar foto de '+esc(p.n)+'"><img src="'+img(p.s)+'" alt="'+esc(p.n)+'" loading="lazy" decoding="async" width="560" height="560"></button>'+thumbsHtml(p,1,"data-ph")+
+    '<div class="picw"><button type="button" class="pic" data-zoom="'+p.s+'" aria-label="Ampliar foto de '+esc(p.n)+'"><img src="'+img(p.s)+'" alt="'+esc(p.n)+'" loading="lazy" decoding="async" width="560" height="560"></button>'+badges+navHtml(p,1,"data-pn")+'</div>'+thumbsHtml(p,1,"data-ph")+
     '<div class="body"><div class="tags">'+tags+'</div><h3>'+esc(p.n)+'</h3>'+
     '<span class="sku">Cód. <b>'+p.s+'</b></span>'+
     '<div class="act">'+actHtml(p)+'</div></div></article>';
@@ -720,7 +789,7 @@ function refreshCard(s){
 }
 function update(scroll){
   shown = PAGE;
-  renderCats(); renderActive(); renderGrid();
+  renderDest(); renderCats(); renderActive(); renderGrid();
   if(scroll) goToProducts();
 }
 
@@ -761,7 +830,7 @@ var lastFocus=null;
 function openSheet(id){
   lastFocus=document.activeElement;
   if(id==="sheet"){ renderItems(); renderSeller(); }
-  if(id==="fsheet"){ draft={q:state.q,pet:state.pet,grp:state.grp,cat:state.cat,line:state.line}; renderFilterSheet(); }
+  if(id==="fsheet"){ draft={q:state.q,pet:state.pet,grp:state.grp,cat:state.cat,line:state.line,dest:state.dest}; renderFilterSheet(); }
   $(id).hidden=false; $("scrim").hidden=false; document.body.style.overflow="hidden"; renderBar();
   if(id==="sheet") A.viewCart(rows());
   var x=$(id).querySelector(".x"); if(x) x.focus();
@@ -834,17 +903,20 @@ document.addEventListener("click",function(e){
   if(d.banner){ runAction((ALL_BANNERS[d.banner]||{}).acao); }
   else if(d.step){ var tr=$("track"), w=tr.firstElementChild.offsetWidth+14; tr.scrollBy({left:(+d.step)*w,behavior:"smooth"}); }
   else if(d.dot){ var t=$("track"), it=t.children[+d.dot]; if(it) t.scrollTo({left:it.offsetLeft-16,behavior:"smooth"}); }
+  else if(d.dest!==undefined && !d.f){ state.dest = state.dest===d.dest ? "" : d.dest; state.grp=""; state.cat=""; update(false); }
+  else if(d.pn){ showPhoto(b.closest(".card"), d.pn, (+(b.closest(".card").dataset.k||1))+(+d.dir)); }
+  else if(d.zpn){ showPhoto($("zoom"), d.zpn, (+($("zoom").dataset.k||1))+(+d.dir)); }
   else if(d.grp!==undefined && !d.f){ state.grp=d.grp; state.cat=""; update(false); }
   else if(d.cat!==undefined && b.classList.contains("chip") && !d.f){ state.cat = (state.cat===d.cat && d.cat) ? "" : d.cat; if(state.cat) state.grp=CAT_GRP[state.cat]; update(false); }
   else if(d.f){ draft[d.f]=d.v; if(d.f==="cat" && d.v) draft.grp=CAT_GRP[d.v]; if(d.f==="grp" && draft.cat && CAT_GRP[draft.cat]!==d.v) draft.cat=""; renderFilterSheet(); }
   else if(d.clear){ if(d.clear==="pet") state.pet="todos"; else state[d.clear]=""; if(d.clear==="cat") state.grp=""; update(false); }
-  else if(d.reset){ $("q").value=""; state={q:"",pet:"todos",grp:"",cat:"",line:""}; if(!$("fsheet").hidden){ draft={q:"",pet:"todos",grp:"",cat:"",line:""}; renderFilterSheet(); } else update(false); }
+  else if(d.reset){ $("q").value=""; state={q:"",pet:"todos",grp:"",cat:"",line:"",dest:""}; if(!$("fsheet").hidden){ draft={q:"",pet:"todos",grp:"",cat:"",line:"",dest:""}; renderFilterSheet(); } else update(false); }
   else if(d.add){ var lp=listPos(d.add); setQty(d.add,1); A.addToCartCard(bySku[d.add], lp.i, lp.list); toast("Adicionado à cotação"); }
   else if(d.inc){ var ci=qtyCtx(b,d.inc); setQty(d.inc,(cart[d.inc]||0)+1); A.qtyChange(bySku[d.inc], 1, ci.src, ci.i, ci.list); }
   else if(d.dec){ if(cart[d.dec]){ var cd=qtyCtx(b,d.dec); setQty(d.dec,cart[d.dec]-1); A.qtyChange(bySku[d.dec], -1, cd.src, cd.i, cd.list); } }
-  else if(d.ph){ var card=b.closest(".card"), k=+d.k; card.dataset.k=k; card.querySelector(".pic img").src=photo(d.ph,k); [].forEach.call(b.parentNode.children,function(x){ x.setAttribute("aria-current", x===b); }); }
-  else if(d.zph){ var k2=+d.k; $("zImg").src=photo(d.zph,k2); [].forEach.call(b.parentNode.children,function(x){ x.setAttribute("aria-current", x===b); }); }
-  else if(d.zoom){ var p=bySku[d.zoom], cardEl=b.closest(".card"), kz=cardEl&&cardEl.dataset.k?+cardEl.dataset.k:1; $("zImg").src=photo(p.s,kz); $("zThumbs").innerHTML=thumbsHtml(p,kz,"data-zph"); $("zImg").alt=p.n; $("zName").textContent=p.n; $("zSku").innerHTML='Cód. <b>'+p.s+'</b> · '+esc(lineName(p.l)); $("zAct").dataset.s=p.s; $("zAct").innerHTML=actHtml(p); $("zoom").hidden=false; $("zClose").focus(); }
+  else if(d.ph){ showPhoto(b.closest(".card"), d.ph, +d.k); }
+  else if(d.zph){ showPhoto($("zoom"), d.zph, +d.k); }
+  else if(d.zoom){ var p=bySku[d.zoom], cardEl=b.closest(".card"), kz=cardEl&&cardEl.dataset.k?+cardEl.dataset.k:1; $("zImg").src=photo(p.s,kz); $("zThumbs").innerHTML=thumbsHtml(p,kz,"data-zph"); $("zoom").dataset.k=kz; [].forEach.call($("zPicw").querySelectorAll(".pnav,.pcount"),function(x){ x.remove(); }); $("zPicw").insertAdjacentHTML("beforeend", navHtml(p,kz,"data-zpn")); $("zImg").alt=p.n; $("zName").textContent=p.n; $("zSku").innerHTML='Cód. <b>'+p.s+'</b> · '+esc(lineName(p.l)); $("zAct").dataset.s=p.s; $("zAct").innerHTML=actHtml(p); $("zoom").hidden=false; $("zClose").focus(); }
   else if(d.close){ closeSheets(d.how); if(d.goto) goToProducts(); }
 });
 document.addEventListener("change",function(e){
@@ -853,15 +925,28 @@ document.addEventListener("change",function(e){
   if(e.target.name==="vend") setErr("fSeller",false);
 });
 document.addEventListener("keydown",function(e){
+  if(!$("zoom").hidden && (e.key==="ArrowLeft"||e.key==="ArrowRight")){ var zs=$("zAct").dataset.s; if(zs && (bySku[zs].g||1)>1) showPhoto($("zoom"), zs, (+($("zoom").dataset.k||1))+(e.key==="ArrowLeft"?-1:1)); }
   if(e.key==="Escape"){ if(!$("waPick").hidden) closePick(); else if(!$("zoom").hidden) $("zoom").hidden=true; else if(anySheetOpen()) closeSheets("tecla_esc"); }
   if(e.key==="Enter" && e.target.dataset && e.target.dataset.set){ e.target.blur(); }
   if(e.key==="Enter" && e.target.id==="q"){ e.target.blur(); }
 });
+/* arrastar o dedo para o lado na foto do card ou na foto ampliada também passa a foto */
+var swX=null, swY=0, swBox=null, swS=null;
+document.addEventListener("touchstart",function(e){
+  var pw=e.target.closest(".picw"); swX=null; if(!pw) return;
+  var box=pw.closest(".card")||(pw.id==="zPicw"?$("zoom"):null); if(!box) return;
+  var s=box.id==="zoom" ? $("zAct").dataset.s : box.dataset.card; if(!s || (bySku[s].g||1)<2) return;
+  swX=e.touches[0].clientX; swY=e.touches[0].clientY; swBox=box; swS=s;
+},{passive:true});
+document.addEventListener("touchend",function(e){
+  if(swX===null) return; var t=e.changedTouches[0], dx=t.clientX-swX, dy=t.clientY-swY; swX=null;
+  if(Math.abs(dx)>35 && Math.abs(dx)>Math.abs(dy)*1.3) showPhoto(swBox, swS, (+(swBox.dataset.k||1))+(dx<0?1:-1));
+},{passive:true});
 var qt; $("q").addEventListener("input",function(){ clearTimeout(qt); var v=this.value; qt=setTimeout(function(){ state.q=v; update(false); },150); });
 $("q").addEventListener("focus",function(){ var top=$("toolbar").getBoundingClientRect().top; if(top>70) goToProducts(); });
 $("qClear").onclick=function(){ $("q").value=""; state.q=""; update(false); $("q").focus(); };
 $("fOpen").onclick=function(){ openSheet("fsheet"); };
-$("fApply").onclick=function(){ state.pet=draft.pet; state.grp=draft.grp; state.cat=draft.cat; state.line=draft.line; closeSheets(); update(true); };
+$("fApply").onclick=function(){ state.pet=draft.pet; state.grp=draft.grp; state.cat=draft.cat; state.line=draft.line; state.dest=draft.dest; closeSheets(); update(true); };
 $("topCart").onclick=function(){ openSheet("sheet"); };
 $("barBtn").onclick=function(){ openSheet("sheet"); };
 $("scrim").onclick=function(){ closeSheets("fundo_escuro"); };
