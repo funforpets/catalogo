@@ -45,6 +45,7 @@ button{cursor:pointer}
 .brand{display:flex;align-items:center;gap:7px;font-weight:900;font-size:21px;letter-spacing:-1.2px;white-space:nowrap;color:#fff;text-decoration:none}
 .brand img{height:38px;width:auto;display:block}
 .brand small{font-size:9.5px;letter-spacing:1px;border:1px solid var(--blue);color:var(--blue);padding:2px 6px;border-radius:4px}
+.brand small.tagline{white-space:nowrap;line-height:1.2;letter-spacing:.5px;font-size:8.5px;padding:3px 6px}
 .top-cart{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:9px;padding:7px 11px;font-weight:800;font-size:14px}
 .top-cart b{background:var(--yellow);color:var(--ink);border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:12px;padding:0 6px;font-variant-numeric:tabular-nums}
 
@@ -177,6 +178,16 @@ main{padding-block:10px 120px}
 .sku{font-size:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
 .sku b{color:var(--ink);font-weight:900}
 .act{margin-top:auto;padding-top:6px}
+/* preço: tabela e as duas faixas de desconto */
+.price{display:grid;gap:3px;margin-top:3px}
+.pv{font-size:21px;font-weight:900;color:var(--navy);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums}
+.pv small{font-size:12px;font-weight:800;margin-right:2px;letter-spacing:0}
+.pv span{font-size:11px;font-weight:700;color:var(--muted);margin-left:2px;letter-spacing:0}
+.pd{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12.5px;font-weight:800;color:var(--ink);background:#f3f7f9;border-radius:7px;padding:4px 7px;font-variant-numeric:tabular-nums}
+.pd i{font-style:normal;font-size:10.5px;font-weight:900;color:var(--its-ink);white-space:nowrap}
+.pd.b{background:#e7f5ec}
+.pd.b i{color:var(--nat-ink)}
+.pcond{border:0;background:none;padding:0;text-align:left;font-size:11px;font-weight:800;color:var(--blue-ink);text-decoration:underline;text-underline-offset:2px}
 .add{width:100%;border:0;border-radius:9px;background:var(--yellow);color:#182a42;font-weight:900;font-size:13px;padding:10px 6px;box-shadow:0 3px 0 var(--yellow-shadow)}
 .add:active{transform:translateY(2px);box-shadow:0 1px 0 var(--yellow-shadow)}
 .qty{display:flex;align-items:center;justify-content:space-between;border:1px solid #9ed9e8;background:var(--its-bg);border-radius:9px;height:41px}
@@ -278,7 +289,7 @@ main{padding-block:10px 120px}
 
 <header class="top">
   <div class="wrap">
-    <a class="brand" id="brand" href="#">funforpets <small>ATACADO</small></a>
+    <a class="brand" id="brand" href="#">funforpets <small class="tagline">COMPRE DIRETO DA<br>FÁBRICA E IMPORTADORA</small></a>
     <button class="top-cart" id="topCart" type="button" aria-label="Abrir cotação">Cotação <b id="topCount">0</b></button>
   </div>
 </header>
@@ -550,6 +561,14 @@ function thumbsHtml(p, cur, attr){
   return h+'</div>';
 }
 function lineName(l){ return LINE_NAMES[l]||l; }
+function brl(v){ return v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function priceHtml(p){
+  if(!p.pr) return "";
+  return '<div class="price"><div class="pv"><small>R$</small>'+brl(p.pr)+'<span>/un.</span></div>'+
+    '<div class="pd"><i>20% off</i>R$ '+brl(Math.round(p.pr*80)/100)+'</div>'+
+    '<div class="pd b"><i>30% off</i>R$ '+brl(Math.round(p.pr*70)/100)+'</div>'+
+    '<button type="button" class="pcond" data-cond="1">Ver condições do desconto</button></div>';
+}
 function onlyDigits(s){ return (s||"").replace(/\D/g,""); }
 function slug(s){ return norm(String(s||"")).replace(/['’]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""); }
 
@@ -767,7 +786,7 @@ function cardHtml(p){
   return '<article class="card'+(cart[p.s]?' in':'')+'" data-card="'+p.s+'">'+
     '<div class="picw"><button type="button" class="pic" data-zoom="'+p.s+'" aria-label="Ampliar foto de '+esc(p.n)+'"><img src="'+img(p.s)+'" alt="'+esc(p.n)+'" loading="lazy" decoding="async" width="560" height="560"></button>'+badges+navHtml(p,1,"data-pn")+'</div>'+thumbsHtml(p,1,"data-ph")+
     '<div class="body"><div class="tags">'+tags+'</div><h3>'+esc(p.n)+'</h3>'+
-    '<span class="sku">Cód. <b>'+p.s+'</b></span>'+
+    '<span class="sku">Cód. <b>'+p.s+'</b></span>'+priceHtml(p)+
     '<div class="act">'+actHtml(p)+'</div></div></article>';
 }
 function renderGrid(start){
@@ -1033,7 +1052,7 @@ window.addEventListener("hashchange",function(){ seller=sellerFromHash(); });
 /* ---- início ---- */
 A.captureAttribution();
 if(CONFIG.PRIVACY_URL) $("privacy").innerHTML='Usamos seus dados só para responder esta cotação. <a href="'+esc(CONFIG.PRIVACY_URL)+'" target="_blank" rel="noopener">Política de privacidade</a>';
-if(CONFIG.LOGO){ $("brand").innerHTML='<img src="'+esc(CONFIG.LOGO)+'" alt="FunForPets"><small>ATACADO</small>'; }
+if(CONFIG.LOGO){ $("brand").innerHTML='<img src="'+esc(CONFIG.LOGO)+'" alt="FunForPets"><small class="tagline">COMPRE DIRETO DA<br>FÁBRICA E IMPORTADORA</small>'; }
 $("uf").innerHTML += UFS.map(function(u){ return '<option>'+u+'</option>'; }).join("");
 seller = sellerFromHash();
 load(); if($("whats").value) $("whats").value=maskPhone($("whats").value);
