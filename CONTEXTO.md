@@ -92,6 +92,12 @@ GROUP BY pr.cd_prod;
   gravar o `pr` de cada produto, build e push. O preço continua fora do dataLayer e da mensagem do WhatsApp; a vendedora fecha o valor na conversa.
 - Cabeçalho: o selo ao lado do logo diz "COMPRE DIRETO DA FÁBRICA E IMPORTADORA" (antes "ATACADO"). O texto do topo passou a "A vendedora confirma estoque, prazo e frete pelo WhatsApp".
 
+## Prévia do link (WhatsApp)
+
+- `og-catalogo.jpg` (1200 x 630, na raiz) é a imagem que aparece quando o link é colado no WhatsApp: logo, selo "Compre direto da fábrica e importadora", cinco produtos e "Catálogo de atacado com preço". As tags `og:` ficam no começo do `src/template.html`.
+- O endereço da imagem e o `og:url` estão com funforpets.github.io. Quando o domínio catalogo.funforpets.com.br entrar, trocar os dois.
+- O WhatsApp guarda a prévia de um endereço por um tempo. Se a imagem não aparecer num link que já foi enviado antes, acrescentar algo no fim do endereço antes do # (ex.: `.../catalogo/?v=2#ionara`) força uma prévia nova.
+
 ## Fotos no card
 
 - Produto com mais de uma foto mostra setas dos dois lados da foto e um contador (1/3) no canto. A seta passa a foto sem abrir a ampliação. Arrastar o dedo para o lado na foto também passa. As miniaturas embaixo continuam.
