@@ -26,6 +26,9 @@ def ordem(f, sku):
     return (int(n[0]) if n else 0, f.suffix.lower() != ".png", f.name)
 
 def quadrado(im, lado):
+    if im.mode in ("RGBA", "LA", "P"):  # PNG com fundo transparente vai para fundo branco
+        im = im.convert("RGBA"); branco = Image.new("RGBA", im.size, (255, 255, 255, 255))
+        im = Image.alpha_composite(branco, im)
     im = im.convert("RGB"); im.thumbnail((lado, lado), Image.LANCZOS)
     fundo = Image.new("RGB", (lado, lado), (255, 255, 255))
     fundo.paste(im, ((lado - im.width) // 2, (lado - im.height) // 2)); return fundo

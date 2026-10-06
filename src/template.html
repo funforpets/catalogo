@@ -627,10 +627,12 @@ function sellerFromHash(){
 }
 
 /* ---- filtros ---- */
+/* "ambos" quer dizer cães e gatos; roedor só aparece no filtro Roedores */
+function petOk(p, pet){ return p.p===pet || (p.p==="ambos" && (pet==="cao" || pet==="gato")); }
 function match(p, st, ignore){
   st = st || state;
   if(st.q){ var t=norm(st.q).trim().split(/\s+/); for(var i=0;i<t.length;i++){ if(p.k.indexOf(t[i])<0) return false; } }
-  if(ignore!=="pet" && st.pet!=="todos" && !(p.p===st.pet || p.p==="ambos")) return false;
+  if(ignore!=="pet" && st.pet!=="todos" && !petOk(p, st.pet)) return false;
   if(ignore!=="grp" && st.grp && p.grp!==st.grp) return false;
   if(ignore!=="cat" && st.cat && p.c!==st.cat) return false;
   if(ignore!=="line" && st.line && p.l!==st.line) return false;
@@ -695,7 +697,7 @@ function renderFilterSheet(){
   ["mv","nov"].forEach(function(k){ var n=base.filter(function(p){ return p[k]; }).length; if(n||st.dest===k) h+=opt("dest",k,DEST[k].nome,st.dest===k,n); });
   h+='</div></div><div class="fgroup"><h3>Para</h3><div class="opts">';
   base=PRODUCTS.filter(function(p){ return match(p, st, "pet"); });
-  PETS.forEach(function(x){ var n = x[0]==="todos"?base.length:base.filter(function(p){ return p.p===x[0]||p.p==="ambos"; }).length; h+=opt("pet",x[0],x[1],st.pet===x[0],n); });
+  PETS.forEach(function(x){ var n = x[0]==="todos"?base.length:base.filter(function(p){ return petOk(p, x[0]); }).length; h+=opt("pet",x[0],x[1],st.pet===x[0],n); });
   h+='</div></div><div class="fgroup"><h3>Seção</h3><div class="opts">';
   base=PRODUCTS.filter(function(p){ return match(p, st, "cat"); });
   var baseAll=PRODUCTS.filter(function(p){ return match(p,{q:st.q,pet:st.pet,grp:"",cat:"",line:st.line,dest:st.dest}); });
