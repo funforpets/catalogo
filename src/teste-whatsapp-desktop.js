@@ -1,0 +1,23 @@
+const { chromium } = require('playwright');
+const ok=(c,m)=>console.log((c?'OK   ':'FAIL ')+m);
+(async()=>{
+ const b=await chromium.launch(); const ctx=await b.newContext({viewport:{width:1366,height:800}});
+ await ctx.route(/googletagmanager/, r=>r.abort());
+ await ctx.addInitScript(()=>{ const oc=HTMLAnchorElement.prototype.click; window.__links=[]; HTMLAnchorElement.prototype.click=function(){ if(/wa\.me|whatsapp/.test(this.href)){ window.__links.push({href:this.href, evs:(window.dataLayer||[]).map(e=>e.event||null)}); return; } return oc.call(this); }; });
+ const m=await ctx.newPage(); await m.goto('file://'+require('path').resolve(__dirname,'..','index.html')+'#camila'); await m.waitForTimeout(500);
+ ok(await m.evaluate(()=>!!document.querySelector('noscript') && GTM_ID==='GTM-MXBCVCT5'),'GTM_ID configurado');
+ await m.click('#grid [data-add]'); await m.click('#topCart'); await m.waitForTimeout(200);
+ await m.fill('#loja','Loja X'); await m.fill('#cnpj','13507909000182'); await m.fill('#email','a@b.com.br'); await m.fill('#whats','51997648812');
+ await m.click('#send'); await m.waitForTimeout(200);
+ ok(!(await m.isHidden('#waPick')),'no computador abre a escolha');
+ ok((await m.evaluate(()=>dataLayer.filter(e=>e.event==='generate_lead').length))===0,'lead ainda não dispara só por abrir a escolha');
+ console.log('   texto:', await m.textContent('#waNum'));
+ await m.screenshot({path:'/tmp/pick.png'});
+ await m.click('#waApp'); await m.waitForTimeout(100); await m.click('#waWeb'); await m.waitForTimeout(100);
+ const L=await m.evaluate(()=>window.__links); const gl=await m.evaluate(()=>dataLayer.filter(e=>e.event==='generate_lead'));
+ ok(L[0].href.startsWith('whatsapp://send?phone=5551996777293&text=Protocolo') && L[0].evs.includes('generate_lead'),'aplicativo: whatsapp://send com número, lead antes');
+ ok(L[1].href.startsWith('https://web.whatsapp.com/send?phone=5551996777293&text=Protocolo'),'WhatsApp Web com número e mensagem');
+ ok(gl.length===1 && gl[0].whatsapp_target==='app_computador','1 lead só, com whatsapp_target app_computador');
+ ok(await m.isHidden('#waPick'),'escolha fecha depois do WhatsApp Web');
+ await b.close();
+})();
