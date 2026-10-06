@@ -15,7 +15,7 @@ Todo push no `window.dataLayer` sai do arquivo `analytics.js` (objeto `window.FF
 
 ## Como ativar
 
-1. No `index.html`, preencher `var GTM_ID = "";` com o ID do contêiner (ex.: `GTM-ABC1234`). Com o campo vazio o GTM não carrega, mas o dataLayer continua sendo preenchido (dá para conferir no console digitando `dataLayer`).
+1. Contêiner GTM-MXBCVCT5 instalado (`var GTM_ID` no `<head>` e o `<noscript>` logo depois do `<body>`). Se um dia precisar desligar, basta deixar `GTM_ID` vazio: o dataLayer continua sendo preenchido.
 2. O link da política de privacidade fica em `CONFIG.PRIVACY_URL`. Hoje aponta para `https://funforpets.com.br/politica-de-privacidade/`.
 3. O site não tem banner de cookies. Quando tiver, chamar `FFPAnalytics.consentDefault()` antes do GTM e `FFPAnalytics.consentGrant()` no aceite (Consent Mode v2: `ad_storage`, `ad_user_data`, `ad_personalization`, `analytics_storage`).
 
@@ -73,7 +73,8 @@ Exemplo de combinação: gatos + brinquedos vira `brinquedos__gatos` / `Brinqued
 | close_cart | Fechamento do drawer "Sua cotação" | close_method | string | "continuar_escolhendo", "botao_x", "fundo_escuro" (toque fora), "tecla_esc" |
 | | | quote_items_count, quote_total_units | number | 3, 12 |
 | | | reached_form | boolean | true se o begin_checkout já disparou nessa abertura |
-| generate_lead | Clique válido em "Enviar cotação pelo WhatsApp". Push síncrono, antes de abrir o WhatsApp. | lead_method | string | "whatsapp" |
+| generate_lead | Celular: clique válido em "Enviar cotação pelo WhatsApp". Computador: clique numa das opções da janela "Onde você usa o WhatsApp" (WhatsApp Web, aplicativo ou copiar). Push síncrono, antes de abrir o WhatsApp, uma vez por protocolo. | lead_method | string | "whatsapp" |
+| | | whatsapp_target | string | "celular", "web", "app_computador", "copiar" |
 | | | lead_type | string | "cotacao_atacado" |
 | | | quote_id | string | "FFP-8F3A2C" |
 | | | quote_items_count, quote_total_units | number | 3, 12 |
@@ -89,6 +90,7 @@ Exemplo de combinação: gatos + brinquedos vira `brinquedos__gatos` / `Brinqued
 ## Detalhes de comportamento
 
 - **Debounce do stepper:** cada produto e origem tem seu próprio relógio de 800 ms. "+ + + −" vira um `add_to_cart` com quantity 2. "+ −" não dispara nada. Se o cliente abrir o drawer, copiar, enviar ou esvaziar antes dos 800 ms, o saldo pendente é enviado antes.
+- **Computador:** o link wa.me no computador passa por uma página do WhatsApp e, em alguns casos, o aplicativo abre "encaminhar para" em vez da conversa. Por isso, no computador o botão de envio abre uma janela com três opções: WhatsApp Web (web.whatsapp.com/send), aplicativo (whatsapp://send) ou copiar a mensagem com o número da vendedora à vista. O `generate_lead` sai na primeira opção escolhida. Quem clica em "Voltar" não gera lead.
 - **Toque duplo no envio:** um segundo clique com a mesma lista em menos de 2 s é ignorado (não abre o WhatsApp de novo, não gera outro lead).
 - **Reenvio:** se o cliente enviar de novo a mesma lista com os mesmos dados (ex.: voltou porque não mandou a mensagem), sai outro `generate_lead` com o mesmo `quote_id`. Para não contar conversão em dobro, mapeie `quote_id` como ID de transação/deduplicação na tag de conversão do Google Ads.
 - **Telefone:** aceita (51) 99764-8812, 51997648812, 051 99764-8812, +55 51 99764-8812, 5551997648812. Todos viram +5551997648812. Fixo com 10 dígitos também vale (+555137121234).

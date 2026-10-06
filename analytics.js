@@ -212,6 +212,7 @@
       quote_items_count: c.quote_items_count,
       quote_total_units: c.quote_total_units
     };
+    if (o.target) ev.whatsapp_target = o.target;   // celular | web | app_computador | copiar
     if (o.city) ev.store_city = o.city;
     if (o.state) ev.store_state = o.state;
     var u = userData(o.email, o.phone, o.name);

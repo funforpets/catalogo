@@ -9,7 +9,7 @@
 <script>
 /* dataLayer antes do GTM. Para ativar o GTM, preencha o ID do contêiner (ex.: "GTM-ABC1234"). */
 window.dataLayer = window.dataLayer || [];
-var GTM_ID = "";
+var GTM_ID = "GTM-MXBCVCT5";
 if (GTM_ID) {
   (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer',GTM_ID);
 }
@@ -234,6 +234,13 @@ main{padding-block:10px 120px}
 .zoom figcaption{padding:12px 14px 14px;border-top:1px solid var(--line);display:grid;gap:8px}
 .zoom figcaption b{font-size:15px}
 
+.wapick{position:fixed;inset:0;z-index:55;background:rgba(14,34,60,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+.wapick .box{background:#fff;border-radius:16px;max-width:420px;width:100%;padding:20px;display:grid;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.wapick h2{margin:0;font-size:18px;color:var(--ink)}
+.wapick p{margin:0;font-size:14px;color:var(--muted)}
+.wapick .alt{width:100%;border:2px solid var(--line);background:#fff;border-radius:11px;padding:13px;font:inherit;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer}
+.wapick .alt:hover{border-color:var(--wa)}
+.wapick .num{font-weight:800;color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--navy);color:#fff;font-weight:800;font-size:13px;padding:9px 14px;border-radius:999px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
 @media (prefers-reduced-motion:no-preference){
   .sheet{animation:up .22s ease-out}
@@ -247,6 +254,7 @@ main{padding-block:10px 120px}
 </style>
 </head>
 <body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MXBCVCT5" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <header class="top">
   <div class="wrap">
@@ -403,6 +411,17 @@ main{padding-block:10px 120px}
     <div id="zThumbs"></div>
     <figcaption><b id="zName"></b><span class="sku" id="zSku"></span><div id="zAct"></div><button class="link" id="zClose" type="button">Fechar</button></figcaption>
   </figure>
+</div>
+<div class="wapick" id="waPick" role="dialog" aria-modal="true" aria-labelledby="waPickT" hidden>
+  <div class="box">
+    <h2 id="waPickT">Onde você usa o WhatsApp neste computador?</h2>
+    <p>A mensagem com a lista já vai pronta. É só conferir e enviar.</p>
+    <button class="send" type="button" id="waWeb">Abrir no WhatsApp Web</button>
+    <button class="alt" type="button" id="waApp">Abrir no aplicativo do WhatsApp</button>
+    <button class="alt" type="button" id="waCopy">Copiar a mensagem</button>
+    <p id="waNum"></p>
+    <button class="link" type="button" id="waCancel">Voltar</button>
+  </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -835,7 +854,7 @@ document.addEventListener("change",function(e){
   if(e.target.name==="vend") setErr("fSeller",false);
 });
 document.addEventListener("keydown",function(e){
-  if(e.key==="Escape"){ if(!$("zoom").hidden) $("zoom").hidden=true; else if(anySheetOpen()) closeSheets("tecla_esc"); }
+  if(e.key==="Escape"){ if(!$("waPick").hidden) closePick(); else if(!$("zoom").hidden) $("zoom").hidden=true; else if(anySheetOpen()) closeSheets("tecla_esc"); }
   if(e.key==="Enter" && e.target.dataset && e.target.dataset.set){ e.target.blur(); }
   if(e.key==="Enter" && e.target.id==="q"){ e.target.blur(); }
 });
@@ -889,12 +908,32 @@ $("send").onclick=function(){
   var qid = sig===lastSend.sig ? lastSend.id : A.newQuoteId();     // reenvio da mesma lista mantém o protocolo
   lastSend={ sig:sig, id:qid, t:now };
   var v=chosenSeller();
-  /* conversão: push síncrono ANTES de abrir o WhatsApp */
-  A.generateLead({ rows:rows(), quoteId:qid, city:$("cidade").value.trim(), state:$("uf").value,
-    email:$("email").value, phone:$("whats").value, name:$("contato").value });
-  var url="https://wa.me/"+onlyDigits(v&&v.whatsapp)+"?text="+encodeURIComponent(buildMsg(v,qid));
-  var a=document.createElement("a"); a.href=url; a.target="_blank"; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove();
+  lead={ v:v, qid:qid, msg:buildMsg(v,qid), fired:false };
+  if(isMobile()){ fireLead("celular"); openLink("https://wa.me/"+onlyDigits(v&&v.whatsapp)+"?text="+encodeURIComponent(lead.msg), true); return; }
+  /* computador: o wa.me passa por uma página intermediária e o aplicativo às vezes abre "encaminhar para".
+     Aqui o cliente escolhe WhatsApp Web, aplicativo ou copiar. */
+  $("waNum").innerHTML='Se preferir copiar, cole na conversa com '+esc(v.nome)+': <span class="num">'+esc(fmtPhone(v.whatsapp))+'</span>';
+  $("waPick").hidden=false; $("waWeb").focus();
 };
+var lead=null;
+function isMobile(){ var ua=navigator.userAgent||""; return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1); }
+function fmtPhone(n){ var d=onlyDigits(n); if(d.indexOf("55")===0 && d.length>11) d=d.slice(2); return maskPhone(d); }
+/* conversão: push síncrono ANTES de abrir o WhatsApp; uma vez por protocolo */
+function fireLead(target){
+  if(!lead || lead.fired) return; lead.fired=true;
+  A.generateLead({ rows:rows(), quoteId:lead.qid, target:target, city:$("cidade").value.trim(), state:$("uf").value,
+    email:$("email").value, phone:$("whats").value, name:$("contato").value });
+}
+function openLink(url, blank){
+  var a=document.createElement("a"); a.href=url; if(blank){ a.target="_blank"; a.rel="noopener"; } document.body.appendChild(a); a.click(); a.remove();
+}
+function closePick(){ $("waPick").hidden=true; $("send").focus(); }
+$("waWeb").onclick=function(){ fireLead("web"); openLink("https://web.whatsapp.com/send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), true); closePick(); };
+$("waApp").onclick=function(){ fireLead("app_computador"); openLink("whatsapp://send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), false); toast("Abrindo o aplicativo. Se não abrir, use o WhatsApp Web"); };
+$("waCopy").onclick=function(){ fireLead("copiar");
+  var t=lead.msg; if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){ toast("Mensagem copiada. Cole no WhatsApp da "+lead.v.nome); },function(){ fallbackCopy(t); }); } else fallbackCopy(t); };
+$("waCancel").onclick=closePick;
+$("waPick").addEventListener("click",function(e){ if(e.target===this) closePick(); });
 $("copy").onclick=function(){
   if(!totals().items){ toast("Adicione pelo menos um produto"); return; }
   A.copyList(rows());
