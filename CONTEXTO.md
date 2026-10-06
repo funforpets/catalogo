@@ -6,8 +6,9 @@ Atualizado em 06/10/2026 (filtros Mais vendidos e Novidades, setas nas fotos, pr
 
 Site de catálogo de atacado, feito para o celular, com os importados (Its Pet e FunForPets) e a indústria (It's Natural e Mordidinhas Naturais). Desde 06/10/2026 mostra o preço de tabela e o preço com desconto (antes não mostrava, e o retorno das vendedoras foi que a falta de preço atrapalhava). O lojista busca e filtra, adiciona produtos "à cotação", preenche os dados da loja e envia a lista pronta para o WhatsApp da vendedora. Substitui o flipbook do FlipHTML5 e foi pensado para tirar atrito do pedido. O visual segue a landing page de atacado (euamo.funforpets.com.br/revenda-atacado-produtos-pets-funforpets).
 
-- No ar: funforpets.github.io/catalogo
-- Domínio definitivo (pendente, ver abaixo): catalogo.funforpets.com.br
+- No ar: **catalogo.funforpets.com.br** (domínio próprio desde 06/10/2026). O endereço antigo funforpets.github.io/catalogo redireciona sozinho para o novo.
+- Links das vendedoras: catalogo.funforpets.com.br/#ionara e catalogo.funforpets.com.br/#camila
+- DNS: no Cloudflare, CNAME `catalogo` apontando para `funforpets.github.io`, nuvem cinza (somente DNS). Se ligar a nuvem laranja, o certificado do GitHub para de renovar. O domínio fica gravado no arquivo `CNAME` da raiz do repositório; apagar esse arquivo tira o site do domínio.
 - Repositório: github.com/funforpets/catalogo (usuário GitHub "funforpets"). Publicação pelo GitHub Pages, branch main, raiz.
 - Cópia local: pasta "Projeto Industria/Comunicacao/Catalogo Cotacao" no computador da Gerência Comercial.
 
@@ -95,7 +96,7 @@ GROUP BY pr.cd_prod;
 ## Prévia do link (WhatsApp)
 
 - `og-catalogo.jpg` (1200 x 630, na raiz) é a imagem que aparece quando o link é colado no WhatsApp: logo, selo "Compre direto da fábrica e importadora", cinco produtos e "Catálogo de atacado com preço". As tags `og:` ficam no começo do `src/template.html`.
-- O endereço da imagem e o `og:url` estão com funforpets.github.io. Quando o domínio catalogo.funforpets.com.br entrar, trocar os dois.
+- O endereço da imagem e o `og:url` apontam para catalogo.funforpets.com.br.
 - O WhatsApp guarda a prévia de um endereço por um tempo. Se a imagem não aparecer num link que já foi enviado antes, acrescentar algo no fim do endereço antes do # (ex.: `.../catalogo/?v=2#ionara`) força uma prévia nova.
 
 ## Fotos no card
@@ -114,7 +115,7 @@ GROUP BY pr.cd_prod;
 
 ## Pendências
 
-1. **Domínio próprio.** Falta criar no Cloudflare um CNAME `catalogo` apontando para `funforpets.github.io`, com a nuvem cinza (DNS only). Depois disso o Claude coloca o domínio no repositório (arquivo CNAME ou Settings > Pages) e confere o https. Não configurar o domínio no GitHub antes do DNS existir, senão o site cai. Fazer isso antes de as vendedoras espalharem os links: o endereço antigo redireciona sozinho, mas a lista salva no aparelho do cliente não passa de um endereço para o outro.
+1. **Domínio próprio: conferir o https.** Feito em 06/10/2026 (CNAME no Cloudflare e arquivo `CNAME` no repositório). Falta marcar "Enforce HTTPS" em Settings > Pages do repositório assim que o GitHub liberar o certificado. Cliente que já tinha lista salva no endereço antigo começa com a lista vazia no novo, porque o navegador guarda a lista por endereço.
 2. **14256 Tapete de silicone para comedouros sem foto.** Em 06/10/2026 entraram no ar 64 dos 65 produtos novos da Its Pet, com as fotos da pasta "Fotos 2" (pendrive ADK), até 3 por produto, PNG de fundo transparente convertido para fundo branco. Só o 14256 ficou de fora porque não veio foto (e está com estoque zero). Quando a foto chegar: `python3 src/fotos_lote.py "/pasta" 14256`, build e push. As fotos dos novos são de fundo branco e várias mostram o mesmo item em cores diferentes; se forem cores sortidas, vale colocar "cores sortidas" no campo `x` para aparecer a etiqueta no card.
 3. Ajustes de filtros e categorias que a Gerência Comercial ia passar.
 4. Banner de cookies: o site não tem. Se entrar, ligar o Consent Mode já preparado no `analytics.js` (`consentDefault` e `consentGrant`).

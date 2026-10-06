@@ -1,6 +1,6 @@
 # Camada de dados (dataLayer) do catálogo de atacado FunForPets
 
-Site: catalogo.funforpets.com.br (hoje também em funforpets.github.io/catalogo)
+Site: catalogo.funforpets.com.br (o endereço antigo funforpets.github.io/catalogo redireciona para ele)
 Todo push no `window.dataLayer` sai do arquivo `analytics.js` (objeto `window.FFPAnalytics`). O `index.html` só chama essas funções nos pontos em que o estado muda.
 
 ## Regras atendidas
