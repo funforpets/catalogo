@@ -1076,14 +1076,14 @@ function fireLead(target){
     email:$("email").value, phone:$("whats").value, name:$("contato").value });
   sendRD(lead.v);
 }
-/* RD Station: só nome da loja, CNPJ, WhatsApp, vendedora e origem do anúncio. Os itens ficam só no WhatsApp.
+/* RD Station: só nome da loja, e-mail (o RD exige), CNPJ, WhatsApp, vendedora e origem do anúncio. Os itens ficam só no WhatsApp.
    Não espera resposta e nunca bloqueia a abertura do WhatsApp; keepalive mantém o envio quando a página sai. */
 function sendRD(v){
   try{
     if(!CONFIG.RD || !CONFIG.RD.API_KEY) return;
     var d=onlyDigits($("whats").value); if(d.indexOf("55")!==0 || d.length<12) d="55"+d;
     var tel="+"+d, at=(A.getAttribution&&A.getAttribution())||{};
-    var p={ conversion_identifier:CONFIG.RD.CONVERSAO, name:$("loja").value.trim(), phone:tel, mobile_phone:tel,
+    var p={ conversion_identifier:CONFIG.RD.CONVERSAO, name:$("loja").value.trim(), email:$("email").value.trim().toLowerCase(), phone:tel, mobile_phone:tel,
       cf_whatsapp:fmtPhone(d), cf_cnpj:maskCnpj($("cnpj").value) };
     if(v && v.nome) p.cf_vendedoras=v.nome;
     var src=at.utm_source||(at.gclid||at.gbraid||at.wbraid?"google":(at.fbclid?"facebook":""));
