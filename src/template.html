@@ -489,7 +489,15 @@ var CONFIG = {
   VENDEDORAS: [
     { id: "ionara", nome: "Ionara", whatsapp: "5551991167392" },
     { id: "camila", nome: "Camila", whatsapp: "5551996777293" }
-  ]
+  ],
+  /* RD Station Marketing: cada cotação enviada vira uma conversão no RD, que repassa ao Ploomes.
+     API_KEY é a chave de CONVERSÃO (API 2.0). Ela só cria/atualiza contato, não lê a base,
+     por isso pode ficar no site. Vazio = desliga o envio ao RD sem afetar o WhatsApp.
+     O "nome" de cada vendedora precisa ser igual à opção do campo cf_vendedoras no RD. */
+  RD: {
+    API_KEY: "CjrsKCFcZDmYLDxLPuAhHipBZCRXUysmIVni",
+    CONVERSAO: "catalogo-cotacao"
+  }
 };
 
 var BANNERS = [
@@ -1052,6 +1060,30 @@ function fireLead(target){
   if(!lead || lead.fired) return; lead.fired=true;
   A.generateLead({ rows:rows(), quoteId:lead.qid, target:target, city:$("cidade").value.trim(), state:$("uf").value,
     email:$("email").value, phone:$("whats").value, name:$("contato").value });
+  sendRD(lead.v);
+}
+/* RD Station: só nome da loja, CNPJ, WhatsApp, vendedora e origem do anúncio. Os itens ficam só no WhatsApp.
+   Não espera resposta e nunca bloqueia a abertura do WhatsApp; keepalive mantém o envio quando a página sai. */
+function sendRD(v){
+  try{
+    if(!CONFIG.RD || !CONFIG.RD.API_KEY) return;
+    var d=onlyDigits($("whats").value); if(d.indexOf("55")!==0 || d.length<12) d="55"+d;
+    var tel="+"+d, at=(A.getAttribution&&A.getAttribution())||{};
+    var p={ conversion_identifier:CONFIG.RD.CONVERSAO, name:$("loja").value.trim(), phone:tel, mobile_phone:tel,
+      cf_whatsapp:fmtPhone(d), cf_cnpj:maskCnpj($("cnpj").value) };
+    if(v && v.nome) p.cf_vendedoras=v.nome;
+    var src=at.utm_source||(at.gclid||at.gbraid||at.wbraid?"google":(at.fbclid?"facebook":""));
+    var med=at.utm_medium||(src&&!at.utm_source?"cpc":"");
+    if(src) p.traffic_source=src;
+    if(med) p.traffic_medium=med;
+    if(at.utm_campaign) p.traffic_campaign=at.utm_campaign;
+    if(at.utm_content||at.utm_term) p.traffic_value=at.utm_content||at.utm_term;
+    fetch("https://api.rd.services/platform/conversions?api_key="+encodeURIComponent(CONFIG.RD.API_KEY),{
+      method:"POST", headers:{"Content-Type":"application/json"}, keepalive:true,
+      body:JSON.stringify({ event_type:"CONVERSION", event_family:"CDP", payload:p })
+    }).then(function(r){ if(!r.ok) console.warn("RD: conversão recusada ("+r.status+")"); })
+      .catch(function(e){ console.warn("RD: falha no envio", e); });
+  }catch(e){ console.warn("RD: erro ao montar envio", e); }
 }
 function openLink(url, blank){
   var a=document.createElement("a"); a.href=url; if(blank){ a.target="_blank"; a.rel="noopener"; } document.body.appendChild(a); a.click(); a.remove();

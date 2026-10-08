@@ -1,6 +1,6 @@
 # Catálogo de cotação FunForPets: contexto para continuar o trabalho
 
-Atualizado em 06/10/2026 (filtros Mais vendidos e Novidades, setas nas fotos, preço no card). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
+Atualizado em 08/10/2026 (envio da cotação para o RD Station e o Ploomes). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
 
 ## O que é
 
@@ -104,6 +104,15 @@ GROUP BY pr.cd_prod;
 - Produto com mais de uma foto mostra setas dos dois lados da foto e um contador (1/3) no canto. A seta passa a foto sem abrir a ampliação. Arrastar o dedo para o lado na foto também passa. As miniaturas embaixo continuam.
 - Na foto ampliada as setas também aparecem, e no computador as setas do teclado passam a foto.
 - A lista de medição (`item_list_id`) ganhou `mais_vendidos` e `novidades`.
+
+## Envio da cotação para o RD Station e o Ploomes (08/10/2026)
+
+- Quando o cliente envia a cotação, além de abrir o WhatsApp, o catálogo manda uma conversão para o RD Station Marketing, que repassa ao Ploomes pela integração nativa.
+- Vai para o RD só: nome da loja (`name`), WhatsApp (`phone`, `mobile_phone` e `cf_whatsapp`), CNPJ com máscara (`cf_cnpj`), vendedora (`cf_vendedoras`, seleção única no RD com as opções Ionara e Camila) e a origem do anúncio (`traffic_source`, `traffic_medium`, `traffic_campaign`, `traffic_value`, a partir das UTMs guardadas pelo `analytics.js`). Os itens da cotação não vão para o CRM, decisão da Gerência Comercial; ficam só na mensagem do WhatsApp.
+- Identificador da conversão: `catalogo-cotacao`. É o gatilho a usar na integração RD com Ploomes.
+- Configuração em `CONFIG.RD` no começo do script do `src/template.html`. A chave é a API Key de conversão da API 2.0 do RD: só cria e atualiza contato, não lê a base, por isso pode ficar no site. Os tokens público e privado antigos (API 1.x) não são usados e não devem entrar no código. Deixar `API_KEY` vazio desliga o envio sem afetar o WhatsApp.
+- O nome de cada vendedora em `CONFIG.VENDEDORAS` precisa ser igual à opção do campo `cf_vendedoras` no RD. Vendedora nova: criar a opção no RD antes.
+- O envio sai junto com o `generate_lead` (função `sendRD`), não espera resposta e usa `keepalive`. Se o RD falhar, o WhatsApp abre do mesmo jeito; o erro só aparece no console.
 
 ## Medição (GTM/GA4)
 
