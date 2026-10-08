@@ -288,6 +288,10 @@ main{padding-block:10px 120px}
 .wapick .alt{width:100%;border:2px solid var(--line);background:#fff;border-radius:11px;padding:13px;font:inherit;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer}
 .wapick .alt:hover{border-color:var(--wa)}
 .wapick .num{font-weight:800;color:var(--ink)}
+.sentok .box{text-align:center;justify-items:center}
+.sentok .ic{width:56px;height:56px;border-radius:50%;background:var(--wa);color:#fff;display:flex;align-items:center;justify-content:center}
+.sentok .ic svg{width:30px;height:30px}
+.sentok .small{font-size:13px}
 .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--navy);color:#fff;font-weight:800;font-size:13px;padding:9px 14px;border-radius:999px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
 @media (prefers-reduced-motion:no-preference){
   .sheet{animation:up .22s ease-out}
@@ -468,6 +472,16 @@ main{padding-block:10px 120px}
     <button class="alt" type="button" id="waCopy">Copiar a mensagem</button>
     <p id="waNum"></p>
     <button class="link" type="button" id="waCancel">Voltar</button>
+  </div>
+</div>
+<div class="wapick sentok" id="sentOk" role="dialog" aria-modal="true" aria-labelledby="sentOkT" hidden>
+  <div class="box">
+    <div class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2 id="sentOkT">Cotação enviada</h2>
+    <p id="sentOkV">Em breve nosso time comercial entra em contato pelo WhatsApp.</p>
+    <p class="small">Se a conversa abriu com a mensagem pronta e ela ainda não saiu, é só tocar em enviar no WhatsApp.</p>
+    <button class="send" type="button" id="sentOkClose">Fechar</button>
+    <button class="link" type="button" id="sentOkRetry" hidden>O WhatsApp não abriu? Escolher outra forma</button>
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -978,7 +992,7 @@ document.addEventListener("change",function(e){
 });
 document.addEventListener("keydown",function(e){
   if(!$("zoom").hidden && (e.key==="ArrowLeft"||e.key==="ArrowRight")){ var zs=$("zAct").dataset.s; if(zs && (bySku[zs].g||1)>1) showPhoto($("zoom"), zs, (+($("zoom").dataset.k||1))+(e.key==="ArrowLeft"?-1:1)); }
-  if(e.key==="Escape"){ if(!$("waPick").hidden) closePick(); else if(!$("zoom").hidden) $("zoom").hidden=true; else if(anySheetOpen()) closeSheets("tecla_esc"); }
+  if(e.key==="Escape"){ if(!$("sentOk").hidden) closeSent(); else if(!$("waPick").hidden) closePick(); else if(!$("zoom").hidden) $("zoom").hidden=true; else if(anySheetOpen()) closeSheets("tecla_esc"); }
   if(e.key==="Enter" && e.target.dataset && e.target.dataset.set){ e.target.blur(); }
   if(e.key==="Enter" && e.target.id==="q"){ e.target.blur(); }
 });
@@ -1046,7 +1060,7 @@ $("send").onclick=function(){
   lastSend={ sig:sig, id:qid, t:now };
   var v=chosenSeller();
   lead={ v:v, qid:qid, msg:buildMsg(v,qid), fired:false };
-  if(isMobile()){ fireLead("celular"); openLink("https://wa.me/"+onlyDigits(v&&v.whatsapp)+"?text="+encodeURIComponent(lead.msg), true); return; }
+  if(isMobile()){ fireLead("celular"); openLink("https://wa.me/"+onlyDigits(v&&v.whatsapp)+"?text="+encodeURIComponent(lead.msg), true); showSent(); return; }
   /* computador: o wa.me passa por uma página intermediária e o aplicativo às vezes abre "encaminhar para".
      Aqui o cliente escolhe WhatsApp Web, aplicativo ou copiar. */
   $("waNum").innerHTML='Se preferir copiar, cole na conversa com '+esc(v.nome)+': <span class="num">'+esc(fmtPhone(v.whatsapp))+'</span>';
@@ -1089,11 +1103,17 @@ function openLink(url, blank){
   var a=document.createElement("a"); a.href=url; if(blank){ a.target="_blank"; a.rel="noopener"; } document.body.appendChild(a); a.click(); a.remove();
 }
 function closePick(){ $("waPick").hidden=true; $("send").focus(); }
-$("waWeb").onclick=function(){ fireLead("web"); openLink("https://web.whatsapp.com/send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), true); closePick(); };
-$("waApp").onclick=function(){ fireLead("app_computador"); openLink("whatsapp://send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), false); toast("Abrindo o aplicativo. Se não abrir, use o WhatsApp Web"); };
+$("waWeb").onclick=function(){ fireLead("web"); openLink("https://web.whatsapp.com/send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), true); closePick(); showSent(); };
+$("waApp").onclick=function(){ fireLead("app_computador"); openLink("whatsapp://send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), false); toast("Abrindo o aplicativo do WhatsApp"); closePick(); showSent(); };
 $("waCopy").onclick=function(){ fireLead("copiar");
   var t=lead.msg; if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){ toast("Mensagem copiada. Cole no WhatsApp da "+lead.v.nome); },function(){ fallbackCopy(t); }); } else fallbackCopy(t); };
 $("waCancel").onclick=closePick;
+/* confirmação depois de abrir o WhatsApp (o cliente ainda confirma o envio dentro do WhatsApp) */
+function showSent(){ $("sentOkV").textContent = lead && lead.v ? "Em breve a "+lead.v.nome+", do nosso time comercial, entra em contato pelo WhatsApp." : "Em breve nosso time comercial entra em contato pelo WhatsApp."; $("sentOkRetry").hidden=isMobile(); $("sentOk").hidden=false; $("sentOkClose").focus(); }
+function closeSent(){ $("sentOk").hidden=true; if(anySheetOpen()) closeSheets("confirmacao_envio"); }
+$("sentOkClose").onclick=closeSent;
+$("sentOkRetry").onclick=function(){ $("sentOk").hidden=true; $("waPick").hidden=false; $("waWeb").focus(); };
+$("sentOk").addEventListener("click",function(e){ if(e.target===this) closeSent(); });
 $("waPick").addEventListener("click",function(e){ if(e.target===this) closePick(); });
 $("copy").onclick=function(){
   if(!totals().items){ toast("Adicione pelo menos um produto"); return; }

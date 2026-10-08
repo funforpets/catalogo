@@ -114,6 +114,11 @@ GROUP BY pr.cd_prod;
 - O nome de cada vendedora em `CONFIG.VENDEDORAS` precisa ser igual à opção do campo `cf_vendedoras` no RD. Vendedora nova: criar a opção no RD antes.
 - O envio sai junto com o `generate_lead` (função `sendRD`), não espera resposta e usa `keepalive`. Se o RD falhar, o WhatsApp abre do mesmo jeito; o erro só aparece no console.
 
+## Confirmação depois do envio (08/10/2026)
+
+- Depois que o WhatsApp abre (celular, WhatsApp Web ou aplicativo no computador), o catálogo mostra a janela "Cotação enviada", dizendo que a vendedora do time comercial entra em contato pelo WhatsApp e lembrando de tocar em enviar se a mensagem ainda não saiu. "Fechar" fecha a janela e a cotação. No computador aparece também "O WhatsApp não abriu? Escolher outra forma", que volta para a escolha entre Web, aplicativo e copiar. Na opção copiar a janela não aparece, porque o cliente ainda vai colar a mensagem.
+- Elementos `#sentOk`, funções `showSent` e `closeSent` no `src/template.html`.
+
 ## Medição (GTM/GA4)
 
 - Contêiner GTM-MXBCVCT5 instalado.

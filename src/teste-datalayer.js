@@ -45,7 +45,8 @@ const ok=(c,m)=>console.log((c?'OK   ':'FAIL ')+m);
  await m.fill('#loja','Pet Shop Teste'); await m.fill('#cnpj','13507909000182'); await m.fill('#contato','  João da Silva Souza ');
  await m.fill('#email','  Compras@PetShopTeste.com.br '); await m.type('#whats','051 99764-8812');
  console.log('   máscara:',await m.inputValue('#whats'));
- await m.click('#send'); await m.click('#send'); await m.waitForTimeout(200);
+ await m.click('#send'); await m.evaluate(()=>document.getElementById('send').click()); await m.waitForTimeout(200); // 2º toque direto no botão (a confirmação cobre a tela depois do 1º)
+ ok(!(await m.isHidden('#sentOk')),'confirmação "Cotação enviada" aparece');
  const gl=await evs('generate_lead'); ok(gl.length===1,'toque duplo gera só 1 generate_lead');
  const at=await m.evaluate(()=>window.__waAt||[]); ok(at.includes('generate_lead'),'generate_lead já estava no dataLayer quando o WhatsApp abriu');
  const g=gl[0]; console.log('   generate_lead:',JSON.stringify(g));
@@ -54,10 +55,11 @@ const ok=(c,m)=>console.log((c?'OK   ':'FAIL ')+m);
  ok(g.attribution && g.attribution.gclid==='TESTGCLID' && g.attribution.utm_source==='google','atribuição com gclid e utm');
  const msg=decodeURIComponent((await m.evaluate(()=>window.__waUrl)).split('text=')[1]);
  ok(msg.split('\n')[0]==='Protocolo: '+g.quote_id,'1ª linha da mensagem = Protocolo'); console.log(msg.split('\n').slice(0,9).map(x=>'   | '+x).join('\n'));
- // reenvio depois de 2s mantém protocolo
+ // reenvio depois de 2s mantém protocolo (some com a confirmação sem fechar a cotação)
+ await m.evaluate(()=>{ document.getElementById('sentOk').hidden=true; });
  await m.waitForTimeout(2100); await m.click('#send'); const gl2=await evs('generate_lead'); ok(gl2.length===2 && gl2[1].quote_id===g.quote_id,'reenvio da mesma lista mantém o protocolo');
  // copiar
- await m.click('#copy'); ok((await evs('copy_list')).length===1,'copy_list');
+ await m.evaluate(()=>{ document.getElementById('sentOk').hidden=true; }); await m.click('#copy'); ok((await evs('copy_list')).length===1,'copy_list');
  // fechar no X
  await m.click('#sheet .x'); await m.waitForTimeout(100);
  let cc=await evs('close_cart'); ok(cc.length===1 && cc[0].close_method==='botao_x' && cc[0].reached_form===true,'close_cart botao_x reached_form true');
