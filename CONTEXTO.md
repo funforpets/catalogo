@@ -1,6 +1,6 @@
 # Catálogo de cotação FunForPets: contexto para continuar o trabalho
 
-Atualizado em 08/10/2026 (envio da cotação para o RD Station e o Ploomes). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
+Atualizado em 13/10/2026 (Microsoft Clarity). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
 
 ## O que é
 
@@ -118,6 +118,12 @@ GROUP BY pr.cd_prod;
 
 - Depois que o WhatsApp abre (celular, WhatsApp Web ou aplicativo no computador), o catálogo mostra a janela "Cotação enviada", dizendo que a vendedora do time comercial entra em contato pelo WhatsApp e lembrando de tocar em enviar se a mensagem ainda não saiu. "Fechar" fecha a janela e a cotação. No computador aparece também "O WhatsApp não abriu? Escolher outra forma", que volta para a escolha entre Web, aplicativo e copiar. Na opção copiar a janela não aparece, porque o cliente ainda vai colar a mensagem.
 - Elementos `#sentOk`, funções `showSent` e `closeSent` no `src/template.html`.
+
+## Microsoft Clarity (13/10/2026)
+
+- Instalado no começo do `src/template.html` (variável `CLARITY_ID`, projeto `yx46fexm41`). Vazio desliga.
+- O formulário "Dados da loja" tem `data-clarity-mask="true"`: nome da loja, CNPJ, nome, e-mail, WhatsApp e cidade aparecem mascarados nas gravações, qualquer que seja a configuração de máscara do projeto no Clarity.
+- Quando a cotação é enviada, a sessão recebe as etiquetas `protocolo` (FFP-XXXXXX, o mesmo da mensagem do WhatsApp) e `vendedora`, e o evento `cotacao_enviada`. No Clarity, filtrar por esse evento mostra só as sessões que viraram cotação; filtrar pela etiqueta `protocolo` acha a gravação de uma conversa específica.
 
 ## Medição (GTM/GA4)
 
