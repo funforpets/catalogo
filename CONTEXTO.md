@@ -1,6 +1,6 @@
 # Catálogo de cotação FunForPets: contexto para continuar o trabalho
 
-Atualizado em 13/10/2026 (Microsoft Clarity). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
+Atualizado em 14/10/2026 (banner do Kit Boas-Vindas). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
 
 ## O que é
 
@@ -28,7 +28,8 @@ Sem nada no fim do link, o cliente escolhe entre Ionara, Camila ou "Tanto faz" (
 - `python3 src/build.py` gera o `index.html` da raiz. Nunca editar o `index.html` direto, sempre o template ou o json e rodar o build.
 - `analytics.js`: único arquivo que escreve no dataLayer (GTM/GA4). Documentação dos eventos em `TRACKING.md`.
 - `img/SKU.jpg` é a foto principal (640x640), `img/SKU-2.jpg` em diante são a galeria e `img/t/SKU-k.jpg` as miniaturas (110x110). Desde out/2026 o máximo é 3 fotos por produto (os antigos têm até 4). `python3 src/fotos.py SKU foto1 foto2 foto3` prepara um produto; `python3 src/fotos_lote.py "/pasta/Fotos"` procura na pasta os arquivos que começam pelo SKU de todos os produtos sem foto e prepara de uma vez, já acertando o campo `g`.
-- `banners/b1` a `b7`: artes do carrossel (1200x600, sem texto, o texto vai no HTML). O carrossel gira a cada 5 s.
+- `banners/b1` a `b8`: artes do carrossel (1200x600, sem texto, o texto vai no HTML). O carrossel gira a cada 5 s.
+- `b8-kit-boas-vindas.jpg` (14/10/2026) é o primeiro do carrossel: "Ganhe R$ 50 em produtos" na primeira compra da loja, pedido a partir de R$ 500, botão "Montar cotação". Arte montada pelo Claude com os recortes de produto e a caixa de presente da pasta Materiais de Vendas/Kit Boas-Vindas DZ Pets (SKUs 14393, 14383, 14390, 14403 e 14386). Tirar do `BANNERS` quando a promoção acabar.
 - `logo/funforpets-branco.png`: logo do topo.
 - `src/teste-datalayer.js` e `src/teste-whatsapp-desktop.js`: testes automáticos (Playwright) do funil de medição e do envio pelo computador.
 
