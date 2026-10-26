@@ -141,6 +141,7 @@ GROUP BY pr.cd_prod;
 - O banner de gatos (`acao:{pet:"gato", cat:"Brinquedos"}`) continua funcionando e marca o botão "Para gatos".
 - Em 26/10/2026 a espécie de cada SKU foi conferida contra o ERP. O cadastro de produto não tem campo de espécie; a linha do produto (BRC/BRG/CBC etc.) indica cão ou gato em parte dos importados e o resto sai pelo nome. Corrigidos: tapetes gelados 13563, 13564 e 13565 e rasqueadeira Funny Hear dog 13616 de `ambos` para `cao`; rasqueadeira Funny Hear cat 13620 de `ambos` para `gato`. Os comedouros cadastrados no ERP como "Comedouro/Bebedouro Cães" seguem como `ambos` no catálogo, porque servem para os dois.
 - A revisão completa (338 SKUs, sugestão e origem de cada uma) fica numa página editável do Claude, "Espécie no Catálogo". Ajuste feito lá precisa ser levado para o campo `p` e publicado.
+- 26/10/2026: a Gerência Comercial revisou os 338 SKUs na página e mudou três para `ambos`: rasqueadeira Funny Hear dog 13616 e bolas de tênis emoji com som P e M (14392 e 14393). O resto ficou como estava. A revisão está encerrada.
 
 ## Pendências
 
