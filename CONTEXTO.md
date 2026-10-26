@@ -1,6 +1,6 @@
 # Catálogo de cotação FunForPets: contexto para continuar o trabalho
 
-Atualizado em 14/10/2026 (banner do Kit Boas-Vindas). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
+Atualizado em 26/10/2026 (botões "Para cães" e "Para gatos"). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
 
 ## O que é
 
@@ -134,11 +134,19 @@ GROUP BY pr.cd_prod;
 - Tudo detalhado em `TRACKING.md`, que foi feito para o gerente de tráfego configurar o GTM.
 - Política de privacidade apontando para funforpets.com.br/politica-de-privacidade/.
 
+## Para cães e Para gatos (26/10/2026)
+
+- O filtro de pet existia desde o começo, mas ficava só dentro da gaveta "Filtros". A Gerência Comercial pediu uma categoria "Para cães" e "Para gatos" à vista. Agora os dois botões abrem a linha de destaques, antes de "Mais vendidos" e "Novidades", com a contagem de produtos. Tocar de novo desmarca. Combinam com seção, categoria, marca e busca, e aparecem na faixa de filtros ativos ("Cães", "Gatos").
+- Usam o mesmo campo `p` do `src/products.json` e a mesma regra da gaveta: produto `ambos` aparece nos dois botões; `roedor` (bebedouros 14420, 14421 e 14422) fica fora dos dois e só aparece na gaveta, em Roedores. A lista dos botões fica em `PET_TOP` no `src/template.html`.
+- O banner de gatos (`acao:{pet:"gato", cat:"Brinquedos"}`) continua funcionando e marca o botão "Para gatos".
+- Em 26/10/2026 a espécie de cada SKU foi conferida contra o ERP. O cadastro de produto não tem campo de espécie; a linha do produto (BRC/BRG/CBC etc.) indica cão ou gato em parte dos importados e o resto sai pelo nome. Corrigidos: tapetes gelados 13563, 13564 e 13565 e rasqueadeira Funny Hear dog 13616 de `ambos` para `cao`; rasqueadeira Funny Hear cat 13620 de `ambos` para `gato`. Os comedouros cadastrados no ERP como "Comedouro/Bebedouro Cães" seguem como `ambos` no catálogo, porque servem para os dois.
+- A revisão completa (338 SKUs, sugestão e origem de cada uma) fica numa página editável do Claude, "Espécie no Catálogo". Ajuste feito lá precisa ser levado para o campo `p` e publicado.
+
 ## Pendências
 
 1. **Domínio próprio: conferir o https.** Feito em 06/10/2026 (CNAME no Cloudflare e arquivo `CNAME` no repositório). Falta marcar "Enforce HTTPS" em Settings > Pages do repositório assim que o GitHub liberar o certificado. Cliente que já tinha lista salva no endereço antigo começa com a lista vazia no novo, porque o navegador guarda a lista por endereço.
 2. **14256 Tapete de silicone para comedouros sem foto.** Em 06/10/2026 entraram no ar 64 dos 65 produtos novos da Its Pet, com as fotos da pasta "Fotos 2" (pendrive ADK), até 3 por produto, PNG de fundo transparente convertido para fundo branco. Só o 14256 ficou de fora porque não veio foto (e está com estoque zero). Quando a foto chegar: `python3 src/fotos_lote.py "/pasta" 14256`, build e push. As fotos dos novos são de fundo branco e várias mostram o mesmo item em cores diferentes; se forem cores sortidas, vale colocar "cores sortidas" no campo `x` para aparecer a etiqueta no card.
-3. Ajustes de filtros e categorias que a Gerência Comercial ia passar.
+3. Ajustes de filtros e categorias que a Gerência Comercial ia passar (Cães e Gatos feito em 26/10/2026).
 4. Banner de cookies: o site não tem. Se entrar, ligar o Consent Mode já preparado no `analytics.js` (`consentDefault` e `consentGrant`).
 5. Contato perdido: e-mail e WhatsApp digitados só vão para o Google e para o aparelho do cliente. Se ele preencher e não mandar a mensagem, a equipe não fica sabendo. Opção em aberto: mandar também para o RD Station.
 6. Teste do funil no GTM Preview num celular de verdade, pelo gerente de tráfego.
