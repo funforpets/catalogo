@@ -20,6 +20,9 @@ Campos de cada produto em products.json:
   pt   só It's Natural: preço da TBRPF (com ST), usado no valor de tabela da
        mensagem quando a loja não é de SC nem de RO
 
+Também grava precos.json na raiz: SKU, nome, preço (pr e pt), linha e grupo de cada
+produto no ar. O Worker da cotação lê esse arquivo para recalcular preço e condições.
+
 Produto sem foto principal em img/ (img/SKU.jpg) fica FORA do index.html até a
 foto chegar. Assim dá para deixar o produto cadastrado no json antes das fotos.
 """
@@ -33,5 +36,8 @@ falta = [s for s in skus if not (raiz / "img" / f"{s}.jpg").exists()]
 if falta:
     print(f"ATENÇÃO, {len(falta)} produto(s) sem foto em img/ ficaram fora do site:", ", ".join(falta))
 d = [p for p in d if p["s"] not in falta]
+# tabela de preços que o Worker da cotação usa para recalcular a cotação (só o que já aparece na tela)
+precos = {p["s"]: {k: p[k] for k in ("n", "pr", "pt", "l", "grp") if k in p} for p in d if p.get("pr")}
+(raiz / "precos.json").write_text(json.dumps(precos, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 (raiz / "index.html").write_text(t.replace("__DATA__", json.dumps(d, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")
 print(f"index.html gerado com {len(d)} produtos ({sum(1 for p in d if p.get('mv'))} mais vendidos, {sum(1 for p in d if p.get('nov'))} novidades)")

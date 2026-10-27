@@ -453,6 +453,7 @@ main{padding-block:10px 120px}
         <div class="field"><label for="cidade">Cidade</label><input id="cidade" name="cidade" autocomplete="address-level2"></div>
         <div class="field" id="fUf"><label for="uf">UF *</label><select id="uf" name="uf" required><option value="">--</option></select><span class="msg" hidden>Escolha a UF.</span></div>
       </div>
+      <div id="tsBox"></div>
     </form>
     <div class="box" id="sellerBox">
       <h3>Enviar para</h3>
@@ -523,6 +524,17 @@ var CONFIG = {
      API_KEY é a chave de CONVERSÃO (API 2.0). Ela só cria/atualiza contato, não lê a base,
      por isso pode ficar no site. Vazio = desliga o envio ao RD sem afetar o WhatsApp.
      O "nome" de cada vendedora precisa ser igual à opção do campo cf_vendedoras no RD. */
+  /* Worker da cotação (Cloudflare). Grava a cotação no Ploomes (empresa pelo CNPJ, negócio com a vendedora,
+     proposta com os itens), manda a conversão ao RD e devolve o link da lista completa para a mensagem.
+     URL vazio = desligado: o site volta a mandar direto ao RD (bloco RD abaixo), sem itens no CRM.
+     ESPERA_MS: quanto o WhatsApp espera pelo Worker antes de abrir com a mensagem sem link.
+     Teste sem afetar o site: ?worker=https://endereco-do-worker no fim do endereço do catálogo. */
+  WORKER: {
+    URL: "",
+    TURNSTILE_SITEKEY: "",
+    ESPERA_MS: 4000,
+    TESTE: []   /* endereços *.workers.dev aceitos no ?worker= (o de funforpets.com.br é sempre aceito) */
+  },
   RD: {
     API_KEY: "CjrsKCFcZDmYLDxLPuAhHipBZCRXUysmIVni",
     CONVERSAO: "catalogo-cotacao"
@@ -921,7 +933,7 @@ function renderSeller(){
 var lastFocus=null;
 function openSheet(id){
   lastFocus=document.activeElement;
-  if(id==="sheet"){ renderItems(); renderSeller(); }
+  if(id==="sheet"){ renderItems(); renderSeller(); tsCarregar(); }
   if(id==="fsheet"){ draft={q:state.q,pet:state.pet,grp:state.grp,cat:state.cat,line:state.line,dest:state.dest}; renderFilterSheet(); }
   $(id).hidden=false; $("scrim").hidden=false; document.body.style.overflow="hidden"; renderBar();
   if(id==="sheet") A.viewCart(rows());
@@ -1108,8 +1120,8 @@ $("send").onclick=function(){
   var qid = sig===lastSend.sig ? lastSend.id : A.newQuoteId();     // reenvio da mesma lista mantém o protocolo
   lastSend={ sig:sig, id:qid, t:now };
   var v=chosenSeller();
-  lead={ v:v, qid:qid, msg:buildMsg(v,qid), fired:false };
-  if(isMobile()){ fireLead("celular"); openLink("https://wa.me/"+onlyDigits(v&&v.whatsapp)+"?text="+encodeURIComponent(lead.msg), true); showSent(); return; }
+  lead={ v:v, qid:qid, msg:buildMsg(v,qid), fired:false, done:!workerOn(), link:null, saveP:null };
+  if(isMobile()){ fireLead("celular"); abrirWhats(function(){ return "https://wa.me/"+onlyDigits(v&&v.whatsapp)+"?text="+encodeURIComponent(lead.msg); }, true); showSent(); return; }
   /* computador: o wa.me passa por uma página intermediária e o aplicativo às vezes abre "encaminhar para".
      Aqui o cliente escolhe WhatsApp Web, aplicativo ou copiar. */
   $("waNum").innerHTML='Se preferir copiar, cole na conversa com '+esc(v.nome)+': <span class="num">'+esc(fmtPhone(v.whatsapp))+'</span>';
@@ -1123,7 +1135,7 @@ function fireLead(target){
   if(!lead || lead.fired) return; lead.fired=true;
   A.generateLead({ rows:rows(), quoteId:lead.qid, target:target, city:$("cidade").value.trim(), state:$("uf").value,
     email:$("email").value, phone:$("whats").value, name:$("contato").value });
-  sendRD(lead.v);
+  if(workerOn()) salvarCotacao(); else sendRD(lead.v);
   try{ if(window.clarity){ clarity("set","protocolo",lead.qid); clarity("set","vendedora",lead.v?lead.v.nome:""); clarity("event","cotacao_enviada"); } }catch(e){}
 }
 /* RD Station: só nome da loja, e-mail (o RD exige), CNPJ, WhatsApp, vendedora e origem do anúncio. Os itens ficam só no WhatsApp.
@@ -1149,14 +1161,63 @@ function sendRD(v){
       .catch(function(e){ console.warn("RD: falha no envio", e); });
   }catch(e){ console.warn("RD: erro ao montar envio", e); }
 }
+/* ---- Worker da cotação ---- */
+var WORKER_URL=(function(){ var u=CONFIG.WORKER&&CONFIG.WORKER.URL||"";
+  try{ var q=new URLSearchParams(location.search).get("worker");
+    var ok=q && (/^https:\/\/([a-z0-9-]+\.)*(funforpets\.com\.br|workers\.dev)(\/|$)/i.test(q) || (location.protocol==="file:" && /^http:\/\/127\.0\.0\.1:\d+$/.test(q)));
+    if(ok && /workers\.dev/i.test(q) && (CONFIG.WORKER.TESTE||[]).indexOf(q.replace(/\/$/,""))<0) ok=false;
+    if(ok) u=q; }catch(e){}
+  return u.replace(/\/$/,""); })();
+function workerOn(){ return !!WORKER_URL; }
+var ts={ token:"", id:null, pedido:false };
+function tsCarregar(){
+  if(!workerOn() || !CONFIG.WORKER.TURNSTILE_SITEKEY || ts.pedido) return; ts.pedido=true;
+  window.onTsLoad=function(){ try{ ts.id=turnstile.render("#tsBox",{ sitekey:CONFIG.WORKER.TURNSTILE_SITEKEY, appearance:"interaction-only", language:"pt-br",
+    callback:function(tk){ ts.token=tk; }, "expired-callback":function(){ ts.token=""; try{ turnstile.reset(ts.id); }catch(e){} }, "error-callback":function(){ ts.token=""; } }); }catch(e){ console.warn("Turnstile", e); } };
+  var s=document.createElement("script"); s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTsLoad&render=explicit"; s.async=true; s.defer=true; document.head.appendChild(s);
+}
+/* Manda a cotação ao Worker uma vez por protocolo. Nunca rejeita e nunca passa de ESPERA_MS:
+   sem resposta a tempo, o WhatsApp abre com a mensagem sem link (o Worker continua gravando no Ploomes). */
+function salvarCotacao(){
+  if(!lead || lead.saveP) return lead && lead.saveP;
+  var L=lead, at=(A.getAttribution&&A.getAttribution())||{};
+  var body={ protocolo:L.qid, vendedora:L.v?L.v.id:"", loja:$("loja").value.trim(), cnpj:$("cnpj").value, contato:$("contato").value.trim(),
+    email:$("email").value.trim().toLowerCase(), whatsapp:onlyDigits($("whats").value), cidade:$("cidade").value.trim(), uf:$("uf").value,
+    itens:Object.keys(cart).map(function(s){ return { sku:s, qtd:cart[s] }; }), utm:at, turnstile:ts.token };
+  L.saveP=new Promise(function(res){
+    var fim=false; function acabou(link){ if(fim) return; fim=true; if(link){ L.link=link; L.msg=buildMsg(L.v,L.qid,link); } L.done=true; res(link); }
+    setTimeout(function(){ acabou(null); }, CONFIG.WORKER.ESPERA_MS||4000);
+    try{
+      fetch(WORKER_URL+"/cotacao",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) })
+        .then(function(r){ return r.json().catch(function(){ return { ok:false, erro:"http "+r.status }; }); })
+        .then(function(j){ if(!(j&&j.ok)) console.warn("Worker: cotação não gravada", j&&j.erro); acabou(j&&j.ok&&j.link||null); })
+        .catch(function(e){ console.warn("Worker: falha no envio", e); acabou(null); });
+    }catch(e){ console.warn("Worker: erro ao montar envio", e); acabou(null); }
+  });
+  if(ts.id!==null){ try{ turnstile.reset(ts.id); }catch(e){} ts.token=""; } // token vale para um envio só
+  return L.saveP;
+}
+/* Abre o WhatsApp depois que o Worker respondeu (ou desistiu de esperar).
+   blank: abre em outra aba; a aba é criada já no clique, porque o celular bloqueia aba aberta depois de esperar. */
+function abrirWhats(urlFn, blank){
+  if(lead.done){ openLink(urlFn(), blank); return; }
+  var w=null; if(blank){ try{ w=window.open("","_blank"); }catch(e){} }
+  var t=setTimeout(function(){ toast("Salvando sua cotação"); }, 400);
+  (lead.saveP||salvarCotacao()).then(function(){
+    clearTimeout(t); var u=urlFn();
+    if(w && !w.closed){ try{ w.location.href=u; return; }catch(e){} }
+    if(blank && !w) location.href=u; else openLink(u, blank);
+  });
+}
 function openLink(url, blank){
   var a=document.createElement("a"); a.href=url; if(blank){ a.target="_blank"; a.rel="noopener"; } document.body.appendChild(a); a.click(); a.remove();
 }
 function closePick(){ $("waPick").hidden=true; $("send").focus(); }
-$("waWeb").onclick=function(){ fireLead("web"); openLink("https://web.whatsapp.com/send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), true); closePick(); showSent(); };
-$("waApp").onclick=function(){ fireLead("app_computador"); openLink("whatsapp://send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg), false); toast("Abrindo o aplicativo do WhatsApp"); closePick(); showSent(); };
+$("waWeb").onclick=function(){ fireLead("web"); abrirWhats(function(){ return "https://web.whatsapp.com/send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg); }, true); closePick(); showSent(); };
+$("waApp").onclick=function(){ fireLead("app_computador"); abrirWhats(function(){ return "whatsapp://send?phone="+onlyDigits(lead.v.whatsapp)+"&text="+encodeURIComponent(lead.msg); }, false); toast("Abrindo o aplicativo do WhatsApp"); closePick(); showSent(); };
 $("waCopy").onclick=function(){ fireLead("copiar");
-  var t=lead.msg; if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){ toast("Mensagem copiada. Cole no WhatsApp da "+lead.v.nome); },function(){ fallbackCopy(t); }); } else fallbackCopy(t); };
+  function copia(){ var t=lead.msg; if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){ toast("Mensagem copiada. Cole no WhatsApp da "+lead.v.nome); },function(){ fallbackCopy(t); }); } else fallbackCopy(t); }
+  if(lead.done) copia(); else { toast("Salvando sua cotação"); lead.saveP.then(copia); } };
 $("waCancel").onclick=closePick;
 /* confirmação depois de abrir o WhatsApp (o cliente ainda confirma o envio dentro do WhatsApp) */
 function showSent(){ $("sentOkV").textContent = lead && lead.v ? "Em breve a "+lead.v.nome+", do nosso time comercial, entra em contato pelo WhatsApp." : "Em breve nosso time comercial entra em contato pelo WhatsApp."; $("sentOkRetry").hidden=isMobile(); $("sentOk").hidden=false; $("sentOkClose").focus(); }
