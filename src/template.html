@@ -264,9 +264,9 @@ main{padding-block:10px 120px}
 .field{display:grid;gap:4px}
 .field label{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.3px}
 .field input,.field select{height:46px;border:1px solid #cfdbe4;border-radius:9px;background:#fff;padding:0 12px;font-size:16px;width:100%;min-width:0}
-.field.err input{border-color:var(--danger)}
+.field.err input,.field.err select{border-color:var(--danger)}
 .field .msg{font-size:12px;color:var(--danger);font-weight:700}
-.two{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:8px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:8px;align-items:start}
 .sellers{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
 .sellers label{display:flex;align-items:center;gap:8px;border:1px solid #cfdbe4;background:#fff;border-radius:10px;padding:11px 12px;font-weight:800;font-size:14px;cursor:pointer}
 .sellers input{accent-color:var(--navy);width:18px;height:18px;margin:0}
@@ -451,7 +451,7 @@ main{padding-block:10px 120px}
       <div class="field" id="fWhats"><label for="whats">WhatsApp *</label><input id="whats" name="whats" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(00) 00000-0000" enterkeyhint="next" required><span class="msg" hidden>Informe o WhatsApp com DDD.</span></div>
       <div class="two">
         <div class="field"><label for="cidade">Cidade</label><input id="cidade" name="cidade" autocomplete="address-level2"></div>
-        <div class="field"><label for="uf">UF</label><select id="uf" name="uf"><option value="">--</option></select></div>
+        <div class="field" id="fUf"><label for="uf">UF *</label><select id="uf" name="uf" required><option value="">--</option></select><span class="msg" hidden>Escolha a UF.</span></div>
       </div>
     </form>
     <div class="box" id="sellerBox">
@@ -953,8 +953,25 @@ function chosenSeller(){
   if(v==="qualquer"){ var vs=CONFIG.VENDEDORAS; return vs[Math.floor(Math.random()*vs.length)]; }
   return CONFIG.VENDEDORAS.filter(function(x){ return x.id===v; })[0]||null;
 }
-function buildMsg(v, qid){
-  var L=[];
+/* Preço de tabela do item, igual ao da cotação manual: TBRPF para importados e Mordidinhas.
+   It's Natural: TBRFP2 (sem ST, o "pr" do card) em SC e RO; TBRPF (com ST, o "pt") nos outros estados.
+   Sempre em 2 casas. Sem UF não dá para saber o preço do It's Natural (devolve null). */
+var UF_SEM_ST = ["SC","RO"];
+function unitPrice(p, uf){
+  if(p.l==="nat" && p.pt){ if(!uf) return null; return UF_SEM_ST.indexOf(uf)>=0 ? p.pr : p.pt; }
+  return typeof p.pr==="number" ? p.pr : null;
+}
+function tableTotal(uf){
+  var cents=0, ok=true;
+  Object.keys(cart).forEach(function(s){ var u=unitPrice(bySku[s], uf); if(u===null){ ok=false; return; } cents += Math.round(u*100)*cart[s]; });
+  return ok ? cents/100 : null;
+}
+/* Mensagem do WhatsApp. Curta de propósito: o link wa.me corta a mensagem perto de 8.000 caracteres
+   (FFP-NXRQ44, 27/10/2026). Cada item vai como "2x 13449"; o nome só entra em lista de até MSG_NOMES_ATE itens.
+   link: endereço da lista completa, quando a cotação já está salva no Ploomes. */
+var MSG_NOMES_ATE = 40;
+function buildMsg(v, qid, link){
+  var L=[], t=totals(), uf=$("uf").value, com=t.items<=MSG_NOMES_ATE;
   if(qid) L.push("Protocolo: "+qid);
   L.push("Olá"+(v?", "+v.nome:"")+"! Montei uma lista no catálogo de atacado e quero a cotação destes itens.");
   L.push("");
@@ -963,14 +980,16 @@ function buildMsg(v, qid){
   if($("contato").value.trim()) L.push("*Contato:* "+$("contato").value.trim());
   if($("email").value.trim()) L.push("*E-mail:* "+$("email").value.trim().toLowerCase());
   if($("whats").value.trim()) L.push("*WhatsApp:* "+$("whats").value.trim());
-  var cid=$("cidade").value.trim(), uf=$("uf").value;
-  if(cid||uf) L.push("*Cidade:* "+cid+(cid&&uf?"/":"")+uf);
+  var cid=$("cidade").value.trim();
+  if(cid||uf) L.push("*Cidade/UF:* "+cid+(cid&&uf?"/":"")+uf);
   L.push("");
-  L.push("*Itens:*");
-  Object.keys(cart).forEach(function(s){ L.push(cart[s]+" un. | "+s+" | "+bySku[s].n); });
-  var t=totals();
+  L.push("*Itens (quantidade e SKU):*");
+  Object.keys(cart).forEach(function(s){ L.push(cart[s]+"x "+s+(com?" "+bySku[s].n:"")); });
   L.push("");
-  L.push("Total: "+t.items+(t.items===1?" produto":" produtos")+", "+t.units+" unidades.");
+  L.push("*Total:* "+t.items+(t.items===1?" produto":" produtos")+", "+t.units+(t.units===1?" unidade.":" unidades."));
+  var vt=tableTotal(uf);
+  if(vt!==null) L.push("*Valor de tabela:* R$ "+brl(vt));
+  if(link) L.push("*Lista completa:* "+link);
   return L.join("\n");
 }
 /* devolve os nomes dos campos com erro (vazio = tudo certo) */
@@ -980,9 +999,10 @@ function checkForm(){
   var c=validCnpj($("cnpj").value); setErr("fCnpj",!c); if(!c) errs.push("cnpj");
   var m=emailOk($("email").value); setErr("fEmail",!m); if(!m) errs.push("email");
   var w=phoneOk($("whats").value); setErr("fWhats",!w); if(!w) errs.push("whatsapp");
+  var u=!!$("uf").value; setErr("fUf",!u); if(!u) errs.push("uf");
   var needSeller = !$("sellerBox").hidden && !seller;
   var s = !needSeller || !!$("sellerArea").querySelector("input:checked"); setErr("fSeller",!s); if(!s) errs.push("vendedora");
-  var first={loja:"loja",cnpj:"cnpj",email:"email",whatsapp:"whats"}[errs[0]];
+  var first={loja:"loja",cnpj:"cnpj",email:"email",whatsapp:"whats",uf:"uf"}[errs[0]];
   if(first) $(first).focus(); else if(!s) $("sellerBox").scrollIntoView({block:"center"});
   return errs;
 }
@@ -1070,7 +1090,8 @@ $("clearCart").onclick=function(){
   this.dataset.confirm="1"; this.textContent="Toque de novo para esvaziar"; var me=this; setTimeout(function(){ if(me.dataset.confirm){ me.textContent="Esvaziar lista"; delete me.dataset.confirm; } },3000);
 };
 $("cnpj").addEventListener("input",function(){ this.value=maskCnpj(this.value); if($("fCnpj").classList.contains("err") && validCnpj(this.value)) setErr("fCnpj",false); saveForm(); });
-["loja","contato","cidade","uf"].forEach(function(k){ $(k).addEventListener("input",function(){ if(k==="loja" && this.value.trim().length>1) setErr("fLoja",false); saveForm(); }); });
+["loja","contato","cidade","uf"].forEach(function(k){ $(k).addEventListener("input",function(){ if(k==="loja" && this.value.trim().length>1) setErr("fLoja",false); if(k==="uf" && this.value) setErr("fUf",false); saveForm(); }); });
+$("uf").addEventListener("change",function(){ if(this.value) setErr("fUf",false); saveForm(); });
 $("email").addEventListener("input",function(){ if($("fEmail").classList.contains("err") && emailOk(this.value)) setErr("fEmail",false); saveForm(); });
 $("whats").addEventListener("input",function(){ this.value=maskPhone(this.value); if($("fWhats").classList.contains("err") && phoneOk(this.value)) setErr("fWhats",false); saveForm(); });
 /* begin_checkout: primeiro foco num campo de "Dados da loja" (uma vez por abertura) */

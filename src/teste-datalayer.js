@@ -40,10 +40,10 @@ const ok=(c,m)=>console.log((c?'OK   ':'FAIL ')+m);
  // envio vazio
  await m.click('#send'); await m.waitForTimeout(100);
  const bc=await evs('begin_checkout'); const fe=await evs('form_error');
- ok(bc.length===1,'begin_checkout uma vez'); ok(fe.length===1 && JSON.stringify(fe[0].error_fields)==='["loja","cnpj","email","whatsapp"]' && fe[0].error_count===4,'form_error '+JSON.stringify(fe[0]&&fe[0].error_fields));
+ ok(bc.length===1,'begin_checkout uma vez'); ok(fe.length===1 && JSON.stringify(fe[0].error_fields)==='["loja","cnpj","email","whatsapp","uf"]' && fe[0].error_count===5,'form_error '+JSON.stringify(fe[0]&&fe[0].error_fields));
  await m.click('#loja'); await m.click('#cnpj'); ok((await evs('begin_checkout')).length===1,'foco de novo não duplica begin_checkout');
  await m.fill('#loja','Pet Shop Teste'); await m.fill('#cnpj','13507909000182'); await m.fill('#contato','  João da Silva Souza ');
- await m.fill('#email','  Compras@PetShopTeste.com.br '); await m.type('#whats','051 99764-8812');
+ await m.fill('#email','  Compras@PetShopTeste.com.br '); await m.type('#whats','051 99764-8812'); await m.selectOption('#uf','RS');
  console.log('   máscara:',await m.inputValue('#whats'));
  await m.click('#send'); await m.evaluate(()=>document.getElementById('send').click()); await m.waitForTimeout(200); // 2º toque direto no botão (a confirmação cobre a tela depois do 1º)
  ok(!(await m.isHidden('#sentOk')),'confirmação "Cotação enviada" aparece');

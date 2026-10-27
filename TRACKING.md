@@ -67,7 +67,7 @@ Exemplo de combinação: gatos + brinquedos vira `brinquedos__gatos` / `Brinqued
 | | | ecommerce.items[] | array | todos os itens |
 | begin_checkout | Primeiro foco em um campo de "Dados da loja", ou clique em "Enviar cotação" (para quem volta com o formulário já preenchido), o que vier primeiro. Uma vez por abertura do drawer. | quote_items_count, quote_total_units, ecommerce.items[] | number, number, array | 3, 12, [...] |
 | form_error | Clique em "Enviar cotação pelo WhatsApp" barrado pela validação | form_name | string | "solicitacao_orcamento" |
-| | | error_fields | array de string | ["cnpj","email"]. Valores possíveis: loja, cnpj, email, whatsapp, vendedora, itens |
+| | | error_fields | array de string | ["cnpj","email"]. Valores possíveis: loja, cnpj, email, whatsapp, uf, vendedora, itens |
 | | | error_count | number | 2 |
 | copy_list | Clique em "Copiar lista" | quote_items_count, quote_total_units, ecommerce.items[] | number, number, array | 3, 12, [...] |
 | close_cart | Fechamento do drawer "Sua cotação" | close_method | string | "continuar_escolhendo", "botao_x", "fundo_escuro" (toque fora), "tecla_esc" |

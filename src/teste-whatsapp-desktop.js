@@ -7,7 +7,7 @@ const ok=(c,m)=>console.log((c?'OK   ':'FAIL ')+m);
  const m=await ctx.newPage(); await m.goto('file://'+require('path').resolve(__dirname,'..','index.html')+'#camila'); await m.waitForTimeout(500);
  ok(await m.evaluate(()=>!!document.querySelector('noscript') && GTM_ID==='GTM-MXBCVCT5'),'GTM_ID configurado');
  await m.click('#grid [data-add]'); await m.click('#topCart'); await m.waitForTimeout(200);
- await m.fill('#loja','Loja X'); await m.fill('#cnpj','13507909000182'); await m.fill('#email','a@b.com.br'); await m.fill('#whats','51997648812');
+ await m.fill('#loja','Loja X'); await m.fill('#cnpj','13507909000182'); await m.fill('#email','a@b.com.br'); await m.fill('#whats','51997648812'); await m.selectOption('#uf','RS');
  await m.click('#send'); await m.waitForTimeout(200);
  ok(!(await m.isHidden('#waPick')),'no computador abre a escolha');
  ok((await m.evaluate(()=>dataLayer.filter(e=>e.event==='generate_lead').length))===0,'lead ainda não dispara só por abrir a escolha');

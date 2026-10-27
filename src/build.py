@@ -16,6 +16,9 @@ Campos de cada produto em products.json:
   cx   unidades por caixa (só Mordidinhas; mostra "Caixa com N")
   mv   posição no ranking dos 50 mais vendidos (1 a 50). Filtro "Mais vendidos"
   nov  1 = novidade (cadastro recente no ERP). Filtro "Novidades"
+  pr   preço de tabela exibido no card (TBRPF; no It's Natural, TBRFP2 sem ST)
+  pt   só It's Natural: preço da TBRPF (com ST), usado no valor de tabela da
+       mensagem quando a loja não é de SC nem de RO
 
 Produto sem foto principal em img/ (img/SKU.jpg) fica FORA do index.html até a
 foto chegar. Assim dá para deixar o produto cadastrado no json antes das fotos.
