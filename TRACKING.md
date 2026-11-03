@@ -109,7 +109,8 @@ Exemplo de combinação: gatos + brinquedos vira `brinquedos__gatos` / `Brinqued
 | ffp_quotes | últimas 20 cotações enviadas: quote_id, data, itens (código e quantidade) e atribuição. Sem CNPJ. |
 | ffp-cot | lista atual (código: quantidade) |
 | ffp-loja | campos do formulário, para pré-preencher na próxima visita |
-| ffp-vend | vendedora que veio pelo link (#ionara / #camila) |
+| ffp-vend | vendedora que veio pelo link (#ionara; o antigo #camila vira ionara) |
+| ffp-rd-sig | CNPJ + lista já mandados ao RD (evita mandar a mesma cotação não enviada duas vezes) |
 
 ## Ordem esperada no GTM Preview
 
