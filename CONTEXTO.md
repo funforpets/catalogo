@@ -1,13 +1,13 @@
 # Catálogo de cotação FunForPets: contexto para continuar o trabalho
 
-Atualizado em 26/10/2026 (botões "Para cães" e "Para gatos"). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
+Atualizado em 03/11/2026 (só a Ionara atende pelo catálogo; texto do Kit Boas-Vindas; contato de cotação não enviada vai ao RD). Antes: 26/10/2026 (botões "Para cães" e "Para gatos"). Este arquivo existe para que uma conversa nova com o Claude retome o catálogo sem precisar reconstruir o histórico. Ele também fica no projeto Expansão Indústria (claude/Catalogo-Cotacao-Contexto.md) e na pasta Comunicacao/Catalogo Cotacao.
 
 ## O que é
 
 Site de catálogo de atacado, feito para o celular, com os importados (Its Pet e FunForPets) e a indústria (It's Natural e Mordidinhas Naturais). Desde 06/10/2026 mostra o preço de tabela e o preço com desconto (antes não mostrava, e o retorno das vendedoras foi que a falta de preço atrapalhava). O lojista busca e filtra, adiciona produtos "à cotação", preenche os dados da loja e envia a lista pronta para o WhatsApp da vendedora. Substitui o flipbook do FlipHTML5 e foi pensado para tirar atrito do pedido. O visual segue a landing page de atacado (euamo.funforpets.com.br/revenda-atacado-produtos-pets-funforpets).
 
 - No ar: **catalogo.funforpets.com.br** (domínio próprio desde 06/10/2026). O endereço antigo funforpets.github.io/catalogo redireciona sozinho para o novo.
-- Links das vendedoras: catalogo.funforpets.com.br/#ionara e catalogo.funforpets.com.br/#camila
+- Link da vendedora: catalogo.funforpets.com.br/#ionara. O link antigo .../#camila continua funcionando e cai na Ionara.
 - DNS: no Cloudflare, CNAME `catalogo` apontando para `funforpets.github.io`, nuvem cinza (somente DNS). Se ligar a nuvem laranja, o certificado do GitHub para de renovar. O domínio fica gravado no arquivo `CNAME` da raiz do repositório; apagar esse arquivo tira o site do domínio.
 - Repositório: github.com/funforpets/catalogo (usuário GitHub "funforpets"). Publicação pelo GitHub Pages, branch main, raiz.
 - Cópia local: pasta "Projeto Industria/Comunicacao/Catalogo Cotacao" no computador da Gerência Comercial.
@@ -17,9 +17,8 @@ Site de catálogo de atacado, feito para o celular, com os importados (Its Pet e
 | Vendedora | WhatsApp | Link dela |
 |---|---|---|
 | Ionara | 51 99116-7392 | .../catalogo/#ionara |
-| Camila | 51 99677-7293 | .../catalogo/#camila |
 
-Sem nada no fim do link, o cliente escolhe entre Ionara, Camila ou "Tanto faz" (sorteia). Quem entrou pelo link de uma vendedora fica com ela guardada no aparelho. Os números ficam em `CONFIG.VENDEDORAS`, no começo do script do `src/template.html`.
+Desde 03/11/2026 só a Ionara atende pelo catálogo. Com uma vendedora só, o site não mostra a escolha de vendedora nem o "Tanto faz" e toda cotação vai para ela. `CONFIG.VENDEDORAS_ANTIGAS` leva quem saiu para quem atende agora (`camila` para `ionara`): vale para o link #camila e para o aparelho que tinha a Camila guardada, que passa a guardar a Ionara. Quando entrar outra vendedora, basta acrescentar em `CONFIG.VENDEDORAS` (a escolha volta a aparecer sozinha) e criar a opção dela no campo `cf_vendedoras` do RD antes. Os números ficam no começo do script do `src/template.html`.
 
 ## Como o site está montado
 
@@ -109,7 +108,7 @@ GROUP BY pr.cd_prod;
 ## Envio da cotação para o RD Station e o Ploomes (08/10/2026)
 
 - Quando o cliente envia a cotação, além de abrir o WhatsApp, o catálogo manda uma conversão para o RD Station Marketing, que repassa ao Ploomes pela integração nativa.
-- Vai para o RD só: nome da loja (`name`), e-mail (`email`, obrigatório: sem ele o RD recusa a conversão com erro 400, apesar de a documentação dizer que telefone basta), WhatsApp (`phone`, `mobile_phone` e `cf_whatsapp`), CNPJ com máscara (`cf_cnpj`), vendedora (`cf_vendedoras`, seleção única no RD com as opções Ionara e Camila) e a origem do anúncio (`traffic_source`, `traffic_medium`, `traffic_campaign`, `traffic_value`, a partir das UTMs guardadas pelo `analytics.js`). Os itens da cotação não vão para o CRM, decisão da Gerência Comercial; ficam só na mensagem do WhatsApp.
+- Vai para o RD só: nome da loja (`name`), e-mail (`email`, obrigatório: sem ele o RD recusa a conversão com erro 400, apesar de a documentação dizer que telefone basta), WhatsApp (`phone`, `mobile_phone` e `cf_whatsapp`), CNPJ com máscara (`cf_cnpj`), vendedora (`cf_vendedoras`, seleção única no RD; a opção Camila continua lá, mas o site só manda Ionara) e a origem do anúncio (`traffic_source`, `traffic_medium`, `traffic_campaign`, `traffic_value`, a partir das UTMs guardadas pelo `analytics.js`). Os itens da cotação não vão para o CRM, decisão da Gerência Comercial; ficam só na mensagem do WhatsApp.
 - Identificador da conversão: `catalogo-cotacao`. É o gatilho a usar na integração RD com Ploomes.
 - Configuração em `CONFIG.RD` no começo do script do `src/template.html`. A chave é a API Key de conversão da API 2.0 do RD: só cria e atualiza contato, não lê a base, por isso pode ficar no site. Os tokens público e privado antigos (API 1.x) não são usados e não devem entrar no código. Deixar `API_KEY` vazio desliga o envio sem afetar o WhatsApp.
 - O nome de cada vendedora em `CONFIG.VENDEDORAS` precisa ser igual à opção do campo `cf_vendedoras` no RD. Vendedora nova: criar a opção no RD antes.
@@ -143,13 +142,20 @@ GROUP BY pr.cd_prod;
 - A revisão completa (338 SKUs, sugestão e origem de cada uma) fica numa página editável do Claude, "Espécie no Catálogo". Ajuste feito lá precisa ser levado para o campo `p` e publicado.
 - 26/10/2026: a Gerência Comercial revisou os 338 SKUs na página e mudou três para `ambos`: rasqueadeira Funny Hear dog 13616 e bolas de tênis emoji com som P e M (14392 e 14393). O resto ficou como estava. A revisão está encerrada.
 
+## Uma vendedora só e cotação não enviada (03/11/2026)
+
+- O site ficou só com a Ionara, sem escolha de vendedora. O link #camila e os aparelhos com a Camila guardada passam para a Ionara (`CONFIG.VENDEDORAS_ANTIGAS`).
+- Kit Boas-Vindas: o banner passou a dizer "Na primeira compra, em pedido a partir de R$ 500. Você escolhe os produtos no catálogo." e a gaveta "Descontos e condições" abre com um quadro explicando que os R$ 50 são em produtos à escolha da loja, até somar R$ 50 (autorizado pela Gerência Comercial em 03/11).
+- Cotação não enviada: quando o cliente tem itens na lista, preencheu loja, CNPJ válido, e-mail e WhatsApp e sai da página ou troca de aba sem enviar, o site manda o contato ao RD com o identificador `catalogo-cotacao-nao-enviada` (`CONFIG.RD.CONVERSAO_NAO_ENVIADA`, vazio desliga). Vai uma vez por CNPJ e lista; se a mesma lista já foi enviada, não vai. Não dispara `generate_lead` e não conta como conversão. Os itens não vão, só o contato. No Ploomes, uma automação cria a tarefa para a vendedora ligar para a loja.
+- Teste: `node src/teste-vendedora-e-nao-enviada.js`.
+
 ## Pendências
 
 1. **Domínio próprio: conferir o https.** Feito em 06/10/2026 (CNAME no Cloudflare e arquivo `CNAME` no repositório). Falta marcar "Enforce HTTPS" em Settings > Pages do repositório assim que o GitHub liberar o certificado. Cliente que já tinha lista salva no endereço antigo começa com a lista vazia no novo, porque o navegador guarda a lista por endereço.
 2. **14256 Tapete de silicone para comedouros sem foto.** Em 06/10/2026 entraram no ar 64 dos 65 produtos novos da Its Pet, com as fotos da pasta "Fotos 2" (pendrive ADK), até 3 por produto, PNG de fundo transparente convertido para fundo branco. Só o 14256 ficou de fora porque não veio foto (e está com estoque zero). Quando a foto chegar: `python3 src/fotos_lote.py "/pasta" 14256`, build e push. As fotos dos novos são de fundo branco e várias mostram o mesmo item em cores diferentes; se forem cores sortidas, vale colocar "cores sortidas" no campo `x` para aparecer a etiqueta no card.
 3. Ajustes de filtros e categorias que a Gerência Comercial ia passar (Cães e Gatos feito em 26/10/2026).
 4. Banner de cookies: o site não tem. Se entrar, ligar o Consent Mode já preparado no `analytics.js` (`consentDefault` e `consentGrant`).
-5. Contato perdido: e-mail e WhatsApp digitados só vão para o Google e para o aparelho do cliente. Se ele preencher e não mandar a mensagem, a equipe não fica sabendo. Opção em aberto: mandar também para o RD Station.
+5. Contato perdido: resolvido em 03/11/2026 (ver "Uma vendedora só e cotação não enviada").
 6. Teste do funil no GTM Preview num celular de verdade, pelo gerente de tráfego.
 7. Confirmar a política v1.3 (descontos e parcelamento) mostrada na gaveta "Descontos e condições".
 

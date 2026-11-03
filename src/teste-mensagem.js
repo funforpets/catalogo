@@ -40,9 +40,9 @@ const mix = { [imp[0].s]: 2, [imp[1].s]: 1, [nat[0].s]: 3, [nat[1].s]: 1 };
   ok(r.msg.includes('3x ' + nat[0].s + ' ' + nat[0].n), 'SC: até 40 itens leva o nome');
   ok(r.msg.includes('*Cidade/UF:* Chapecó/SC'), 'SC: cidade/UF na mensagem');
   console.log('---- mensagem SC ----\n' + r.msg + '\n---------------------');
-  // 2. Camila, loja do PR, computador: It's Natural na TBRPF
+  // 2. Link antigo da Camila (desde 03/11/2026 vai para a Ionara), loja do PR, computador: It's Natural na TBRPF
   r = await caso(b, 'pr', { mobile: false, vend: 'camila', cart: mix, form: form('PR', 'Curitiba') });
-  ok(r.num === '5551996777293', 'PR/computador: WhatsApp Web da Camila');
+  ok(r.num === '5551991167392', 'PR/computador: link antigo #camila cai no WhatsApp Web da Ionara');
   ok(r.msg.includes('*Valor de tabela:* R$ ' + esperado(mix, 'PR')) && esperado(mix, 'PR') !== esperado(mix, 'SC'), 'PR: It\'s Natural na TBRPF = R$ ' + esperado(mix, 'PR'));
   // 3. Sem UF: não envia e marca o campo
   r = await caso(b, 'semuf', { mobile: true, vend: 'camila', cart: mix, form: form('', '') });
