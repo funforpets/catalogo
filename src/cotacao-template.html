@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Montar cotação · FunForPets</title>
+<!--
+  Página de uso interno da vendedora: cola a mensagem que chegou do catálogo no WhatsApp
+  e sai a cotação em PDF, com as mesmas contas do gerar_cotacao.py (pasta Cotações) e do
+  Worker (worker/src/politica.js). Se a política mudar, mudar POLITICA aqui também.
+  Gerada por src/build.py a partir de src/cotacao-template.html (não editar cotacao.html).
+  Nada é gravado: os dados da loja ficam só na memória da página enquanto ela está aberta.
+-->
+<style>
+:root{
+  --verde:#14524B; --verde-2:#0f3f3a; --laranja:#E8892B; --tag:#9a5a12;
+  --listra:#f4f7f6; --callv:#edf3f1; --calla:#fdf4e8;
+  --txt:#1f2a28; --txt2:#5a6966; --borda:#d5dfdc; --fundo:#e9eeec;
+  --font:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --serif:Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--txt);font-family:var(--font);font-size:14px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{max-width:1060px;margin:0 auto;padding:18px 16px 40px}
+.app h1{font-family:var(--serif);color:var(--verde);font-size:24px;margin:4px 0 2px}
+.app .sub{color:var(--txt2);margin:0 0 16px}
+.passo{background:#fff;border:1px solid var(--borda);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.passo h2{font-size:15px;margin:0 0 10px;color:var(--verde)}
+textarea#msg{width:100%;min-height:150px;border:1px solid var(--borda);border-radius:8px;padding:10px;resize:vertical;font-size:13px}
+.linha{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.btn{border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;background:var(--verde);color:#fff}
+.btn:hover{background:var(--verde-2)}
+.btn.sec{background:#fff;color:var(--verde);border:1px solid var(--verde)}
+.btn.mini{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.campos{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.campos label{display:flex;flex-direction:column;font-size:12px;color:var(--txt2);font-weight:600;gap:3px}
+.campos input,.campos select{border:1px solid var(--borda);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--txt);background:#fff}
+.campos .l2{grid-column:span 2}
+.opcoes{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
+.opcoes label{display:flex;gap:6px;align-items:flex-start;max-width:470px;cursor:pointer}
+.opcoes small{display:block;color:var(--txt2)}
+.avisos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.avisos li{border-left:4px solid var(--verde);background:var(--callv);padding:7px 10px;border-radius:0 6px 6px 0}
+.avisos li.alerta{border-color:#c0392b;background:#fbeceb}
+.avisos li.atencao{border-color:var(--laranja);background:var(--calla)}
+.ed{width:100%;border-collapse:collapse;font-size:13px}
+.ed th{background:var(--verde);color:#fff;text-align:left;padding:6px 8px;font-weight:600}
+.ed td{padding:4px 8px;border-bottom:1px solid var(--borda)}
+.ed td.n,.ed th.n{text-align:right;white-space:nowrap}
+.ed input[type=number]{width:64px;border:1px solid var(--borda);border-radius:5px;padding:3px 5px;text-align:right}
+.ed .x{border:0;background:none;color:#c0392b;font-weight:700;cursor:pointer;font-size:15px}
+.add{display:flex;gap:8px;align-items:center;margin-top:10px}
+.add input{border:1px solid var(--borda);border-radius:6px;padding:6px 8px;width:110px}
+textarea#wpp{width:100%;min-height:170px;border:1px solid var(--borda);border-radius:8px;padding:10px;font-size:13px;background:#fafcfb}
+.dica{color:var(--txt2);font-size:12px}
+.vazio{color:var(--txt2);font-style:italic}
+
+/* ---------- documento (o que vira PDF) ---------- */
+.folha{width:210mm;max-width:100%;margin:0 auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.12);padding:0 14mm 12mm}
+.doc{font-size:9.5pt;line-height:1.35;color:var(--txt)}
+.banda{background:var(--verde);color:#fff;margin:0 -14mm 6mm;padding:7mm 14mm;display:flex;align-items:center;justify-content:space-between}
+.banda img{height:22mm;width:auto}
+.banda .dir{text-align:right}
+.banda .t{font-family:var(--serif);font-weight:700;font-size:22pt;line-height:1}
+.banda .p{font-size:10pt;margin-top:4px}
+.banda .s{color:var(--laranja);font-weight:700;font-size:9.5pt;margin-top:4px;letter-spacing:.02em}
+.doc h3{font-family:var(--serif);color:var(--verde);font-size:14pt;margin:5mm 0 2.5mm}
+.dados{width:100%;border-collapse:collapse;background:var(--listra)}
+.dados td{padding:3.5px 6px;border-bottom:1px solid #fff;vertical-align:middle}
+.dados td.k{font-weight:700;width:22mm}
+.prods{width:100%;border-collapse:collapse}
+.prods th{background:var(--verde);color:#fff;font-weight:700;text-align:left;padding:3px 5px}
+.prods th.n,.prods td.n{text-align:right;white-space:nowrap}
+.prods td{padding:2px 5px;vertical-align:middle}
+.prods tr.par td{background:var(--listra)}
+.prods tr.grupo td{background:var(--callv);font-weight:700;padding:5px}
+.prods tr.sub td{border-top:1.2px solid var(--verde);font-weight:700;padding:4px 5px}
+.prods td.f{width:13mm}
+.prods td.f img{width:10mm;height:10mm;object-fit:contain;display:block}
+.prods td.sku{width:15mm}
+.prods tr{break-inside:avoid}
+.resumo{width:100%;border-collapse:collapse;border:1.2px solid var(--verde);margin-top:5mm;break-inside:avoid}
+.resumo td{padding:6px 8px;border-bottom:.6px solid var(--borda)}
+.resumo tr:last-child td{border-bottom:0}
+.resumo td.n{text-align:right;font-weight:700;white-space:nowrap;width:36mm}
+.resumo tr.av td{background:var(--callv)}
+.resumo tr.av td.n{color:var(--verde)}
+.pequeno{font-size:8.2pt;color:var(--txt2);margin-top:2mm}
+.promos{break-before:page;padding-top:2mm}
+.card{border:.8px solid var(--borda);border-left:3px solid var(--laranja);padding:7px 9px;margin-bottom:3.5mm;break-inside:avoid}
+.card.ok{border-left-color:var(--verde)}
+.card .ti{font-weight:700;color:var(--verde);font-size:11pt;margin-bottom:1.5mm}
+.card .st{font-weight:700;color:var(--tag);margin-top:2mm}
+.card.ok .st{color:var(--verde)}
+.card table{width:100%;border-collapse:collapse;margin-top:2mm}
+.card th{background:var(--verde);color:#fff;text-align:left;padding:3px 6px;font-weight:700}
+.card td{padding:3px 6px}
+.card tr:nth-child(even) td{background:var(--listra)}
+.sim{background:var(--calla);padding:6px 9px;margin-bottom:4mm;break-inside:avoid}
+.sim .ti{font-weight:700;color:var(--verde);font-size:11pt;margin-bottom:1mm}
+.sim table{width:100%;border-collapse:collapse;margin-top:1.5mm}
+.sim td{padding:3px 0}
+.sim tr:first-child td{border-bottom:.6px solid var(--borda)}
+.sim td.n{text-align:right;font-weight:700;white-space:nowrap}
+.rodape{margin-top:8mm;padding-top:2mm;border-top:.6px solid var(--borda);font-size:8pt;color:var(--txt2)}
+
+@media (max-width:760px){
+  .campos{grid-template-columns:1fr 1fr}
+  .folha{padding:0 4mm 8mm}.banda{margin:0 -4mm 5mm;padding:5mm 4mm}
+}
+@page{size:A4;margin:12mm 14mm 14mm}
+@media print{
+  body{background:#fff}
+  .no-print{display:none!important}
+  .app{max-width:none;padding:0;margin:0}
+  .folha{width:auto;box-shadow:none;padding:0;margin:0}
+  .banda{margin:0 0 6mm;padding:6mm 7mm}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="no-print">
+    <h1>Montar cotação</h1>
+    <p class="sub">Uso interno. Cole a mensagem que chegou do catálogo, confira e baixe o PDF para mandar à loja. Nada fica gravado.</p>
+
+    <section class="passo">
+      <h2>1. Cole a mensagem do WhatsApp</h2>
+      <textarea id="msg" placeholder="Protocolo: FFP-XXXXXX&#10;Olá, Ionara! Montei uma lista no catálogo de atacado...&#10;&#10;Cole a mensagem inteira, do protocolo até o valor de tabela."></textarea>
+      <div class="linha">
+        <button class="btn" id="bMontar">Montar cotação</button>
+        <button class="btn sec" id="bLimpar">Limpar</button>
+      </div>
+    </section>
+
+    <div id="etapas" hidden>
+      <section class="passo">
+        <h2>2. Confira os dados e os avisos</h2>
+        <ul class="avisos" id="avisos"></ul>
+        <div class="campos" style="margin-top:14px">
+          <label class="l2">Loja<input id="fLoja"></label>
+          <label>CNPJ<input id="fCnpj"></label>
+          <label>Protocolo<input id="fProt"></label>
+          <label class="l2">Contato<input id="fContato"></label>
+          <label>E-mail<input id="fEmail"></label>
+          <label>WhatsApp<input id="fWhats"></label>
+          <label class="l2">Cidade<input id="fCidade"></label>
+          <label>UF<select id="fUf"></select></label>
+          <label>Vendedora<select id="fVend"></select></label>
+        </div>
+        <div class="opcoes">
+          <label><input type="checkbox" id="oKit" checked><span>Primeira compra da loja (Kit Boas-Vindas)<small>Desmarque se a loja já comprou da DZ, de qualquer marca.</small></span></label>
+          <label><input type="checkbox" id="oPrazo" checked><span>Oferecer pagamento a prazo<small>Desmarque se a loja tem pendência no Financeiro ou está como inadimplente.</small></span></label>
+        </div>
+      </section>
+
+      <section class="passo">
+        <h2>3. Itens</h2>
+        <table class="ed" id="ed"></table>
+        <div class="add">
+          <span class="dica">Acrescentar item:</span>
+          <input id="addSku" placeholder="SKU" inputmode="numeric">
+          <input id="addQtd" type="number" min="1" value="1" style="width:70px">
+          <button class="btn mini" id="bAdd">Acrescentar</button>
+          <span class="dica" id="addMsg"></span>
+        </div>
+      </section>
+
+      <section class="passo">
+        <h2>4. Mensagem para a loja</h2>
+        <textarea id="wpp" readonly></textarea>
+        <div class="linha"><button class="btn sec" id="bCopiar">Copiar mensagem</button><span class="dica" id="copiado"></span></div>
+      </section>
+
+      <section class="passo">
+        <h2>5. PDF</h2>
+        <div class="linha" style="margin-top:0">
+          <button class="btn" id="bPdf">Baixar PDF</button>
+          <span class="dica">Na janela que abrir, escolha "Salvar como PDF" e desmarque "Cabeçalhos e rodapés". A prévia está logo abaixo.</span>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="folha" id="folha" hidden><div class="doc" id="doc"></div></div>
+</div>
+
+<script>
+var PRODUTOS = __DATA__;
+
+var CONFIG = {
+  /* Quem atende pelo catálogo. Mesma lista do CONFIG.VENDEDORAS do src/template.html. */
+  VENDEDORAS: [{ id: "ionara", nome: "Ionara", whatsapp: "(51) 99116-7392" }],
+  VENDEDORAS_ANTIGAS: { camila: "ionara" },
+  LOGO: "logo/funforpets-branco.png",
+  RODAPE: "DZ Pets Ltda · CNPJ 13.507.909/0001-82 · catalogo.funforpets.com.br"
+};
+
+/* Política comercial v1.3 (17/09/2026). Igual ao gerar_cotacao.py e ao worker/src/politica.js. */
+var POLITICA = {
+  MINIMO: 500, AVISTA: 0.10,
+  ESCADA: [[5000, 0.20], [3000, 0.15], [2000, 0.10], [1000, 0.05]],
+  PRAZO: [[6000, "até 6x", "90 dias"], [4000, "até 5x", "70 dias"], [2000, "até 4x", "56 dias"], [500, "até 3x", "42 dias"]],
+  BONIF: [[3000, 3], [2000, 2], [1000, 1]],
+  BONIF_ATE: "2026-12-01", KIT_VALOR: 50,
+  UF_SEM_ST: ["SC", "RO"]
+};
+var UFS = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split(" ");
+
+/* ---------- contas ---------- */
+function r2(v) { return Math.round((v + 1e-9) * 100) / 100; }
+function faixa(tab, v, padrao) {
+  for (var i = 0; i < tab.length; i++) if (v >= tab[i][0]) return tab[i].length > 2 ? tab[i].slice(1) : tab[i][1];
+  return padrao === undefined ? null : padrao;
+}
+function proxima(tab, v) {
+  var lims = tab.map(function (t) { return t[0]; }).sort(function (a, b) { return a - b; });
+  for (var i = 0; i < lims.length; i++) if (v < lims[i]) return lims[i];
+  return null;
+}
+function escadaDe(lim) { for (var i = 0; i < POLITICA.ESCADA.length; i++) if (POLITICA.ESCADA[i][0] === lim) return POLITICA.ESCADA[i][1]; return 0; }
+function precoUnitario(p, uf) {
+  var v = (p.l === "nat" && p.pt != null) ? (POLITICA.UF_SEM_ST.indexOf(uf) >= 0 ? p.pr : p.pt) : p.pr;
+  return r2(v);
+}
+function condicoes(imp, ind, hoje) {
+  var esc = faixa(POLITICA.ESCADA, imp, 0), tot = r2(imp + ind);
+  return {
+    imp: imp, ind: ind, tot: tot, esc: esc,
+    avista: r2(imp * (1 - esc - POLITICA.AVISTA) + ind * (1 - POLITICA.AVISTA)),
+    prazo: r2(imp * (1 - esc) + ind),
+    parc: faixa(POLITICA.PRAZO, tot),
+    bon: hoje <= POLITICA.BONIF_ATE ? faixa(POLITICA.BONIF, tot, 0) : 0
+  };
+}
+function brl(v) {
+  var s = Math.abs(v).toFixed(2).split("."), i = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return (v < 0 ? "-" : "") + "R$ " + i + "," + s[1];
+}
+function pct(x) { return Math.round(x * 100) + "%"; }
+function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function hojeISO() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function isoBr(iso) { var p = iso.split("-"); return p[2] + "/" + p[1] + "/" + p[0]; }
+function numBr(s) { return parseFloat(String(s).replace(/\./g, "").replace(",", ".")); }
+
+var POR_SKU = {};
+PRODUTOS.forEach(function (p) { POR_SKU[p.s] = p; });
+
+/* ---------- leitura da mensagem ---------- */
+function lerMensagem(texto) {
+  var r = { prot: "", vend: "", loja: {}, itens: [], msgProdutos: null, msgUnidades: null, msgValor: null, linhasNaoLidas: [] };
+  var ordem = [], qtd = {};
+  texto.split(/\r?\n/).forEach(function (bruta) {
+    var l = bruta.replace(/[*_~]/g, "").replace(/‎|‏/g, "").trim(), m;
+    if (!l) return;
+    if ((m = l.match(/^Protocolo:?\s*(FFP-[A-Z0-9]+)/i))) { r.prot = m[1].toUpperCase(); return; }
+    if ((m = l.match(/^Ol[áa],?\s*([^!]+)!/i))) { r.vend = m[1].trim(); return; }
+    if ((m = l.match(/^(Loja|CNPJ|Contato|E-?mail|WhatsApp|Cidade\/UF|Cidade|UF):\s*(.*)$/i))) {
+      var k = m[1].toLowerCase().replace("-", ""), v = m[2].trim();
+      if (k === "loja") r.loja.nome = v;
+      else if (k === "cnpj") r.loja.cnpj = v;
+      else if (k === "contato") r.loja.contato = v;
+      else if (k === "email") r.loja.email = v.toLowerCase();
+      else if (k === "whatsapp") r.loja.whatsapp = v;
+      else if (k === "uf") r.loja.uf = v.toUpperCase();
+      else {
+        var mm = v.match(/^(.*?)\s*\/\s*([A-Za-z]{2})$/);
+        if (mm) { r.loja.cidade = mm[1]; r.loja.uf = mm[2].toUpperCase(); } else r.loja.cidade = v;
+      }
+      return;
+    }
+    if ((m = l.match(/^(\d+)\s*x\s*(\d{4,6})\b/i)) || (m = l.match(/^(\d+)\s*un\.?\s*\|\s*(\d{4,6})\b/i))) {
+      var s = m[2], q = parseInt(m[1], 10);
+      if (!(s in qtd)) { ordem.push(s); qtd[s] = 0; }
+      qtd[s] += q; return;
+    }
+    if ((m = l.match(/^Total:\s*(\d+)\s*produtos?,\s*(\d+)\s*unidades?/i))) { r.msgProdutos = +m[1]; r.msgUnidades = +m[2]; return; }
+    if ((m = l.match(/^Valor de tabela:\s*R\$\s*([\d.]+,\d{2})/i))) { r.msgValor = numBr(m[1]); return; }
+  });
+  r.itens = ordem.map(function (s) { return { sku: s, qtd: qtd[s] }; });
+  return r;
+}
+
+/* ---------- estado ---------- */
+var E = null;
+
+function vendedoraPorNome(nome) {
+  var id = (nome || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+  var antiga = CONFIG.VENDEDORAS_ANTIGAS[id];
+  var v = CONFIG.VENDEDORAS.filter(function (x) { return x.id === (antiga || id); })[0];
+  return { v: v || CONFIG.VENDEDORAS[0], trocou: !!antiga, original: nome };
+}
+
+function montar() {
+  var t = document.getElementById("msg").value;
+  if (!t.trim()) { alert0("Cole a mensagem primeiro."); return; }
+  var r = lerMensagem(t);
+  var vv = vendedoraPorNome(r.vend);
+  E = {
+    hoje: hojeISO(), prot: r.prot, vend: vv.v, vendTrocou: vv.trocou ? vv.original : "",
+    loja: { nome: r.loja.nome || "", cnpj: r.loja.cnpj || "", contato: r.loja.contato || "", email: r.loja.email || "",
+            whatsapp: r.loja.whatsapp || "", cidade: r.loja.cidade || "", uf: UFS.indexOf(r.loja.uf) >= 0 ? r.loja.uf : "" },
+    itens: r.itens, msg: { produtos: r.msgProdutos, unidades: r.msgUnidades, valor: r.msgValor },
+    editado: false, kit: true, prazo: true
+  };
+  document.getElementById("oKit").checked = true;
+  document.getElementById("oPrazo").checked = true;
+  preencherCampos();
+  document.getElementById("etapas").hidden = false;
+  document.getElementById("folha").hidden = false;
+  renderTudo();
+  document.getElementById("etapas").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function alert0(t) { var a = document.getElementById("msg"); a.focus(); a.setAttribute("placeholder", t); }
+
+function preencherCampos() {
+  var map = { fLoja: "nome", fCnpj: "cnpj", fContato: "contato", fEmail: "email", fWhats: "whatsapp", fCidade: "cidade" };
+  Object.keys(map).forEach(function (id) { document.getElementById(id).value = E.loja[map[id]]; });
+  document.getElementById("fProt").value = E.prot;
+  var uf = document.getElementById("fUf");
+  uf.innerHTML = '<option value="">escolha</option>' + UFS.map(function (u) { return "<option" + (u === E.loja.uf ? " selected" : "") + ">" + u + "</option>"; }).join("");
+  var fv = document.getElementById("fVend");
+  fv.innerHTML = CONFIG.VENDEDORAS.map(function (v) { return '<option value="' + v.id + '"' + (v.id === E.vend.id ? " selected" : "") + ">" + esc(v.nome) + "</option>"; }).join("");
+}
+
+function linhas() {
+  return E.itens.map(function (it) {
+    var p = POR_SKU[it.sku];
+    if (!p) return { sku: it.sku, qtd: it.qtd, desconhecido: true };
+    var preco = precoUnitario(p, E.loja.uf);
+    return { sku: it.sku, qtd: it.qtd, nome: p.n, preco: preco, total: r2(it.qtd * preco), grupo: p.grp === "imp" ? "importado" : "industria", l: p.l };
+  });
+}
+function calc() {
+  var L = linhas(), ok = L.filter(function (x) { return !x.desconhecido; });
+  var imp = r2(ok.filter(function (x) { return x.grupo === "importado"; }).reduce(function (a, x) { return a + x.qtd * x.preco; }, 0));
+  var ind = r2(ok.filter(function (x) { return x.grupo === "industria"; }).reduce(function (a, x) { return a + x.qtd * x.preco; }, 0));
+  var C = condicoes(imp, ind, E.hoje);
+  C.linhas = ok; C.desconhecidos = L.filter(function (x) { return x.desconhecido; });
+  C.nProd = ok.length; C.nUn = ok.reduce(function (a, x) { return a + x.qtd; }, 0);
+  C.impIt = ok.filter(function (x) { return x.grupo === "importado"; });
+  C.indIt = ok.filter(function (x) { return x.grupo === "industria"; });
+  C.minimoOk = C.tot >= POLITICA.MINIMO;
+  var sim = C.impIt.length && imp < 1000 && C.impIt.every(function (x) { return x.qtd === 1; });
+  if (sim) { C.sim = condicoes(r2(imp * 2), ind, E.hoje); }
+  return C;
+}
+window.__cotacao = { calc: function () { return E ? calc() : null; }, estado: function () { return E; } };
+
+/* ---------- avisos ---------- */
+function renderAvisos(C) {
+  var A = [];
+  function add(cls, t) { A.push('<li class="' + cls + '">' + t + "</li>"); }
+  if (!E.prot) add("atencao", "A mensagem veio sem a linha do protocolo. Confira se ela foi copiada inteira.");
+  if (!E.loja.uf) add("alerta", "Escolha a UF da loja. Sem ela não dá para saber a tabela do It's Natural.");
+  if (E.vendTrocou) add("atencao", "A mensagem era para a " + esc(E.vendTrocou) + ". A cotação sai com a " + esc(E.vend.nome) + ", que atende o catálogo.");
+  if (C.desconhecidos.length) add("alerta", "SKU que não está no catálogo, ficou fora da cotação: " + C.desconhecidos.map(function (x) { return x.qtd + "x " + esc(x.sku); }).join(", ") + ". Confira o código com a loja.");
+  if (!E.editado && E.msg.unidades != null && (E.msg.unidades !== C.nUn || E.msg.produtos !== C.nProd + C.desconhecidos.length))
+    add("alerta", "A mensagem diz " + E.msg.produtos + " produtos e " + E.msg.unidades + " unidades, mas os itens listados somam " + (C.nProd + C.desconhecidos.length) + " produtos e " + (C.nUn + C.desconhecidos.reduce(function (a, x) { return a + x.qtd; }, 0)) + " unidades. Confirme as quantidades com a loja antes de mandar.");
+  else if (!E.editado && E.msg.valor != null && E.loja.uf && Math.abs(E.msg.valor - C.tot) > 0.009)
+    add("alerta", "A mensagem diz " + brl(E.msg.valor) + " de tabela e a cotação dá " + brl(C.tot) + ". Confira a UF e as quantidades.");
+  else if (!E.editado && E.msg.valor != null && E.loja.uf) add("", "Itens e valor de tabela batem com a mensagem: " + C.nProd + " produtos, " + C.nUn + " unidades, " + brl(C.tot) + ".");
+  if (E.msg.unidades == null && !E.editado) add("atencao", "A mensagem não tem a linha \"Total\". Se ela for longa, pode ter chegado cortada: peça a lista completa à loja.");
+  if (C.indIt.some(function (x) { return x.l === "nat"; }) && E.loja.uf)
+    add("", POLITICA.UF_SEM_ST.indexOf(E.loja.uf) >= 0 ? "Loja de " + E.loja.uf + ": It's Natural na tabela sem ST (TBRFP2)." :
+      "Loja de " + E.loja.uf + ": It's Natural na tabela com ST (TBRPF), mais barata que o preço do catálogo. A ST entra na nota por cima do preço; o PDF não fala de ST.");
+  if (!C.minimoOk) add("atencao", "Abaixo do pedido mínimo: faltam " + brl(POLITICA.MINIMO - C.tot) + " para R$ 500,00. Sem desconto, prazo nem Kit até lá.");
+  else {
+    var pe = proxima(POLITICA.ESCADA, C.imp);
+    if (pe && C.impIt.length) add("", "Faltam " + brl(r2(pe - C.imp)) + " em importados para o desconto de volume de " + pct(escadaDe(pe)) + ".");
+    var pb = E.hoje <= POLITICA.BONIF_ATE ? proxima(POLITICA.BONIF, C.tot) : null;
+    if (pb) add("", "Faltam " + brl(r2(pb - C.tot)) + " no pedido para " + (C.bon ? "mais uma caixa" : "a primeira caixa") + " de It's Natural de bonificação.");
+  }
+  add("atencao", "Antes de mandar, confira no ERP: se a loja já tem cadastro com compra (se tiver, desmarque o Kit), se o vendedor do cadastro é INADIMPL ou há título em aberto (se houver, desmarque o prazo e fale com a Gerência Comercial) e o estoque dos itens.");
+  document.getElementById("avisos").innerHTML = A.join("");
+}
+
+/* ---------- editor de itens ---------- */
+function renderEditor(C) {
+  var h = '<tr><th>SKU</th><th>Produto</th><th class="n">Qtd</th><th class="n">Preço un.</th><th class="n">Total</th><th></th></tr>';
+  linhas().forEach(function (x, i) {
+    h += "<tr><td>" + esc(x.sku) + "</td><td>" + (x.desconhecido ? '<span class="vazio">fora do catálogo</span>' : esc(x.nome)) + '</td><td class="n"><input type="number" min="0" value="' + x.qtd + '" data-i="' + i + '"></td><td class="n">' +
+      (x.desconhecido ? "" : brl(x.preco)) + '</td><td class="n" data-t="' + i + '">' + (x.desconhecido ? "" : brl(x.total)) + '</td><td><button class="x" title="Tirar" data-del="' + i + '">×</button></td></tr>';
+  });
+  document.getElementById("ed").innerHTML = h;
+}
+
+/* ---------- mensagem para a loja ---------- */
+function primeiroNome(c) { if (!c || c.indexOf("@") >= 0) return ""; return c.trim().split(/\s+/)[0].replace(/^./, function (a) { return a.toUpperCase(); }); }
+function mensagem(C) {
+  var nome = primeiroNome(E.loja.contato), v = E.vend.nome, L = [];
+  var kit = E.kit;
+  L.push((nome ? "Oi, " + nome + "!" : "Oi!") + " Aqui é a " + v + ", da DZ Pets. Recebi a cotação da " + (E.loja.nome || "loja") + (E.prot ? " (protocolo " + E.prot + ")" : "") + ", obrigada pela lista!");
+  if (!C.minimoOk) {
+    L.push("Os " + C.nUn + " itens que você montou ficam em " + brl(C.tot) + ". Nosso pedido mínimo é de R$ 500, então faltam " + brl(r2(POLITICA.MINIMO - C.tot)) + ". Chegando a R$ 500, você paga à vista com 10% de desconto" +
+      (E.prazo ? " ou parcela em até 3x" : "") + (kit ? ", e como é a primeira compra da loja ainda ganha R$ 50 em produtos à sua escolha" : "") + ".");
+  } else {
+    var t = "Os " + C.nUn + " itens ficam em " + brl(C.tot) + " de tabela.";
+    if (C.esc) t += " Como os brinquedos e acessórios passam de R$ " + faixaInicio(C.imp).toLocaleString("pt-BR") + ", já entra " + pct(C.esc) + " de desconto neles. À vista, com mais 10%, sai por " + brl(C.avista) + ".";
+    else t += " À vista, com 10% de desconto, sai por " + brl(C.avista) + ".";
+    if (E.prazo) t += C.esc ? " A prazo fica em " + brl(C.prazo) + ", " + C.parc[0].replace("até ", "em até ") + ", depois da consulta do CNPJ."
+      : " Também dá para parcelar " + C.parc[0].replace("até ", "em até ") + ", depois da consulta do CNPJ.";
+    var cx = C.bon === 1 ? "uma caixa" : C.bon + " caixas";
+    if (C.bon && kit) t += " " + (C.bon > 1 ? "Vão" : "Vai") + " junto " + cx + " do petisco It's Natural de presente e, por ser a primeira compra, mais R$ 50 em produtos à sua escolha.";
+    else if (C.bon) t += " " + (C.bon > 1 ? "Vão" : "Vai") + " junto " + cx + " do petisco It's Natural de presente.";
+    else if (kit) t += " E por ser a primeira compra da loja, você ganha R$ 50 em produtos à sua escolha.";
+    L.push(t);
+    var dicas = [], pe = proxima(POLITICA.ESCADA, C.imp), pb = E.hoje <= POLITICA.BONIF_ATE ? proxima(POLITICA.BONIF, C.tot) : null;
+    if (pe && C.impIt.length && pe - C.imp <= 800) dicas.push("com mais " + brl(r2(pe - C.imp)) + " em brinquedos e acessórios, o desconto deles " + (C.esc ? "sobe para " : "começa em ") + pct(escadaDe(pe)));
+    if (pb && pb - C.tot <= 800) dicas.push("com mais " + brl(r2(pb - C.tot)) + " no pedido, vem " + (C.bon ? "mais uma caixa" : "uma caixa") + " de It's Natural de presente");
+    if (dicas.length) L.push("Uma conta que vale olhar: " + dicas.join(", e ") + ".");
+  }
+  L.push("Te mando o PDF com tudo. Qualquer ajuste na lista, é só me falar.");
+  return L.join("\n\n");
+}
+function faixaInicio(imp) { for (var i = 0; i < POLITICA.ESCADA.length; i++) if (imp >= POLITICA.ESCADA[i][0]) return POLITICA.ESCADA[i][0]; return 0; }
+
+/* ---------- documento ---------- */
+function nomeIndustria(C) {
+  var n = [];
+  if (C.indIt.some(function (x) { return x.l === "mor"; })) n.push("Mordidinhas Naturais");
+  if (C.indIt.some(function (x) { return x.l === "nat"; })) n.push("It's Natural");
+  return n.length ? "Indústria (" + n.join(" e ") + ")" : "Indústria";
+}
+function tab(cab, lin) {
+  return "<table><tr>" + cab.map(function (c) { return "<th>" + c + "</th>"; }).join("") + "</tr>" +
+    lin.map(function (l) { return "<tr>" + l.map(function (c) { return "<td>" + c + "</td>"; }).join("") + "</tr>"; }).join("") + "</table>";
+}
+function card(ti, txt, st, ok, extra) {
+  return '<div class="card' + (ok ? " ok" : "") + '"><div class="ti">' + ti + "</div><div>" + txt + "</div>" + (extra || "") + '<div class="st">' + st + "</div></div>";
+}
+function renderDoc(C) {
+  var lj = E.loja, v = E.vend, dataBr = isoBr(E.hoje), h = "";
+  h += '<div class="banda"><img src="' + CONFIG.LOGO + '" alt="FunForPets"><div class="dir"><div class="t">Cotação</div><div class="p">Protocolo ' + esc(E.prot || "não informado") + " · " + dataBr +
+    '</div><div class="s">COMPRE DIRETO DA FÁBRICA E IMPORTADORA</div></div></div>';
+  h += '<table class="dados"><tr><td class="k">Loja</td><td>' + esc(lj.nome) + '</td><td class="k">Contato</td><td>' + esc(lj.contato) + "</td></tr>" +
+    '<tr><td class="k">CNPJ</td><td>' + esc(lj.cnpj) + '</td><td class="k">E-mail</td><td>' + esc(lj.email) + "</td></tr>" +
+    '<tr><td class="k">WhatsApp</td><td>' + esc(lj.whatsapp) + '</td><td class="k">Vendedora</td><td>' + esc(v.nome + " · " + v.whatsapp) + "</td></tr>" +
+    ((lj.cidade || lj.uf) ? '<tr><td class="k">Cidade</td><td>' + esc(lj.cidade + (lj.uf ? "/" + lj.uf : "")) + "</td><td></td><td></td></tr>" : "") + "</table>";
+  h += "<h3>Produtos cotados</h3>";
+  h += '<table class="prods"><thead><tr><th>Foto</th><th>SKU</th><th>Produto</th><th class="n">Qtd</th><th class="n">Preço un.</th><th class="n">Total</th></tr></thead><tbody>';
+  function bloco(nome, its, sub) {
+    if (!its.length) return;
+    h += '<tr class="grupo"><td colspan="6">' + nome + "</td></tr>";
+    its.forEach(function (x, k) {
+      h += "<tr" + (k % 2 ? ' class="par"' : "") + '><td class="f"><img src="img/' + esc(x.sku) + '.jpg" alt="" onerror="this.style.visibility=\'hidden\'"></td><td class="sku">' + esc(x.sku) + "</td><td>" + esc(x.nome) +
+        '</td><td class="n">' + x.qtd + '</td><td class="n">' + brl(x.preco) + '</td><td class="n">' + brl(x.total) + "</td></tr>";
+    });
+    var nu = its.reduce(function (a, x) { return a + x.qtd; }, 0);
+    h += '<tr class="sub"><td></td><td></td><td colspan="3">Subtotal ' + nome + " (" + its.length + " produtos, " + nu + ' unidades)</td><td class="n">' + brl(sub) + "</td></tr>";
+  }
+  bloco("Importados", C.impIt, C.imp);
+  bloco(nomeIndustria(C), C.indIt, C.ind);
+  h += "</tbody></table>";
+
+  var descAv = C.esc ? pct(C.esc) + " + 10% nos importados e 10% na indústria" : "10% de desconto";
+  if (!C.indIt.length && C.esc) descAv = pct(C.esc) + " + 10% de desconto";
+  h += '<table class="resumo"><tr><td>Total a preço de tabela (' + C.nProd + " produtos, " + C.nUn + ' unidades)</td><td class="n">' + brl(C.tot) + "</td></tr>";
+  if (C.minimoOk) {
+    h += '<tr class="av"><td><b>Pagamento à vista, com ' + descAv + '</b></td><td class="n">' + brl(C.avista) + "</td></tr>";
+    if (E.prazo) h += "<tr><td>Pagamento a prazo: " + C.parc[0].replace("até ", "em até ") + ", com prazo máximo de " + C.parc[1] + ", sujeito à consulta do CNPJ" + (C.esc ? " (" + pct(C.esc) + " nos importados)" : "") + '</td><td class="n">' + brl(C.prazo) + "</td></tr>";
+  } else h += '<tr class="av"><td><b>Faltam ' + brl(r2(POLITICA.MINIMO - C.tot)) + " para o pedido mínimo de R$ 500,00</b></td><td></td></tr>";
+  h += '</table><div class="pequeno">Frete por conta do comprador. Preços da tabela vigente em ' + dataBr + ", sujeitos à disponibilidade de estoque na hora do pedido. Venda exclusiva para CNPJ, com pedido mínimo de R$ 500,00.</div>";
+
+  h += '<div class="promos"><h3>Promoções válidas para o seu pedido</h3><p>Abaixo estão as condições que valem hoje para pedidos feitos pelo catálogo, e onde o seu pedido está em cada uma.</p>';
+  if (E.kit) h += card("Kit Boas-Vindas: R$ 50 em produtos na primeira compra",
+    "Na primeira compra da loja, com pedido a partir de R$ 500,00, você ganha R$ 50,00 em produtos e escolhe quais quer. Vale qualquer item do catálogo, a preço de tabela, até somar R$ 50,00. Os itens estão sujeitos a estoque.",
+    C.minimoOk ? "Seu pedido já se encaixa: é a primeira compra da " + esc(lj.nome) + " e passa de R$ 500,00. É só dizer à " + esc(v.nome) + " quais produtos você quer receber." : "Faltam " + brl(r2(POLITICA.MINIMO - C.tot)) + " para chegar aos R$ 500,00.", C.minimoOk);
+  h += card("10% de desconto no pagamento à vista",
+    "O desconto vale sobre o pedido inteiro, importados e indústria, em qualquer valor a partir de R$ 500,00. Ele soma com o desconto por volume dos importados.",
+    C.minimoOk ? "Já aplicado na cotação: " + brl(C.avista) + " à vista." : "Vale assim que o pedido chegar a R$ 500,00.", C.minimoOk);
+  if (C.impIt.length) {
+    var pe = proxima(POLITICA.ESCADA, C.imp), ste;
+    if (C.esc) { ste = "Seus importados somam " + brl(C.imp) + ": desconto de " + pct(C.esc) + " já aplicado."; if (pe) ste += " Faltam " + brl(r2(pe - C.imp)) + " para a faixa de " + pct(escadaDe(pe)) + "."; }
+    else ste = "Seus importados somam " + brl(C.imp) + ". Faltam " + brl(r2(pe - C.imp)) + " para a primeira faixa, de 5%.";
+    h += card("Desconto por volume nos importados",
+      "Quanto mais importado no pedido, maior o desconto sobre eles. Vale à vista e a prazo. Os produtos da indústria (It's Natural e Mordidinhas) entram pelo preço de tabela, mas contam para o pedido mínimo e para o prazo.",
+      ste, !!C.esc, tab(["Importados no pedido", "Desconto sobre os importados"], [["Abaixo de R$ 1.000,00", "Sem desconto"], ["R$ 1.000,00 a R$ 1.999,99", "5%"], ["R$ 2.000,00 a R$ 2.999,99", "10%"], ["R$ 3.000,00 a R$ 4.999,99", "15%"], ["R$ 5.000,00 ou mais", "20%"]]));
+  }
+  if (E.hoje <= POLITICA.BONIF_ATE) {
+    var pb = proxima(POLITICA.BONIF, C.tot), stb;
+    if (C.bon) { stb = "Seu pedido está em " + brl(C.tot) + ": " + C.bon + " caixa" + (C.bon > 1 ? "s" : "") + " de It's Natural bonificada" + (C.bon > 1 ? "s" : "") + "."; if (pb) stb += " Faltam " + brl(r2(pb - C.tot)) + " para a próxima caixa."; }
+    else stb = "Seu pedido está em " + brl(C.tot) + ". Faltam " + brl(r2(pb - C.tot)) + " para a primeira caixa.";
+    h += card("Bonificação de frete com It's Natural",
+      "Para compensar o frete, a partir de R$ 1.000,00 de pedido a DZ Pets envia caixas fechadas do petisco It's Natural, com o item definido pela DZ Pets. A caixa bonificada não conta para o mínimo, para o prazo nem para as faixas de desconto. Válida para pedidos faturados até " + isoBr(POLITICA.BONIF_ATE) + ".",
+      stb, !!C.bon, tab(["Valor do pedido", "Bonificação"], [["R$ 1.000,00 a R$ 1.999,99", "1 caixa de It's Natural"], ["R$ 2.000,00 a R$ 2.999,99", "2 caixas de It's Natural"], ["R$ 3.000,00 ou mais", "3 caixas de It's Natural"]]));
+  }
+  if (E.prazo) h += card("Pagamento a prazo",
+    "Dentro do limite da faixa, você escolhe quantas parcelas quer e em quais dias. O prazo depende da consulta do CNPJ.",
+    C.minimoOk ? "Seu pedido pode sair " + C.parc[0].replace("até ", "em até ") + ", com prazo máximo de " + C.parc[1] + "." : "O prazo começa a partir de R$ 500,00 de pedido.", C.minimoOk,
+    tab(["Valor do pedido", "Parcelas em boleto", "Prazo máximo"], [["R$ 500,00 a R$ 1.999,99", "até 3x", "42 dias"], ["R$ 2.000,00 a R$ 3.999,99", "até 4x", "56 dias"], ["R$ 4.000,00 a R$ 5.999,99", "até 5x", "70 dias"], ["R$ 6.000,00 ou mais", "até 6x", "90 dias"]]));
+  if (C.sim) {
+    var S = C.sim, ganhos = [];
+    if (S.esc > C.esc) ganhos.push("o desconto de " + pct(S.esc) + " nos importados");
+    if (S.bon > C.bon) ganhos.push(S.bon + " caixa" + (S.bon > 1 ? "s" : "") + " de It's Natural bonificada" + (S.bon > 1 ? "s" : ""));
+    var txt = "Levando duas unidades de cada um dos " + C.impIt.length + " importados" + (C.indIt.length ? " e mantendo a indústria como está" : "") + ", os importados somam " + brl(S.imp) + " e o pedido vai para " + brl(S.tot) + " a preço de tabela.";
+    if (ganhos.length) txt += " Com isso entram " + ganhos.join(" e ") + ".";
+    var avt = S.esc ? "À vista (" + pct(S.esc) + " + 10% nos importados" + (C.indIt.length ? ", 10% na indústria)" : ")") : "À vista (10%)";
+    var pzt = "A prazo, " + S.parc[0].replace("até ", "em até ") + " com prazo máximo de " + S.parc[1] + (S.esc ? " (" + pct(S.esc) + " nos importados)" : "");
+    h += '<div class="sim"><div class="ti">Simulação com 2 unidades de cada importado</div><div>' + txt + '</div><table><tr><td>' + avt + '</td><td class="n">' + brl(S.avista) + "</td></tr>" +
+      (E.prazo ? "<tr><td>" + pzt + '</td><td class="n">' + brl(S.prazo) + "</td></tr>" : "") + "</table></div>";
+  }
+  h += "<p>Para fechar ou ajustar o pedido, fale com a " + esc(v.nome) + " pelo WhatsApp " + esc(v.whatsapp) + ".</p></div>";
+  h += '<div class="rodape">' + CONFIG.RODAPE + "</div>";
+  document.getElementById("doc").innerHTML = h;
+}
+
+function renderTudo(semEditor) {
+  var C = calc();
+  renderAvisos(C);
+  if (!semEditor) renderEditor(C);
+  else linhas().forEach(function (x, i) { var td = document.querySelector('[data-t="' + i + '"]'); if (td && !x.desconhecido) td.textContent = brl(x.total); });
+  document.getElementById("wpp").value = mensagem(C);
+  renderDoc(C);
+  document.getElementById("bPdf").disabled = !E.loja.uf;
+}
+
+/* ---------- eventos ---------- */
+document.getElementById("bMontar").onclick = montar;
+document.getElementById("bLimpar").onclick = function () {
+  E = null; document.getElementById("msg").value = ""; document.getElementById("etapas").hidden = true; document.getElementById("folha").hidden = true;
+};
+[["fLoja", "nome"], ["fCnpj", "cnpj"], ["fContato", "contato"], ["fEmail", "email"], ["fWhats", "whatsapp"], ["fCidade", "cidade"]].forEach(function (p) {
+  document.getElementById(p[0]).addEventListener("input", function (e) { E.loja[p[1]] = e.target.value; renderTudo(true); });
+});
+document.getElementById("fProt").addEventListener("input", function (e) { E.prot = e.target.value.trim(); renderTudo(true); });
+document.getElementById("fUf").addEventListener("change", function (e) { E.loja.uf = e.target.value; renderTudo(); });
+document.getElementById("fVend").addEventListener("change", function (e) { E.vend = CONFIG.VENDEDORAS.filter(function (v) { return v.id === e.target.value; })[0]; renderTudo(true); });
+document.getElementById("oKit").addEventListener("change", function (e) { E.kit = e.target.checked; renderTudo(true); });
+document.getElementById("oPrazo").addEventListener("change", function (e) { E.prazo = e.target.checked; renderTudo(true); });
+document.getElementById("ed").addEventListener("input", function (e) {
+  var i = e.target.getAttribute("data-i"); if (i == null) return;
+  var q = parseInt(e.target.value, 10); if (isNaN(q) || q < 0) return;
+  E.itens[+i].qtd = q; E.editado = true; renderTudo(true);
+});
+document.getElementById("ed").addEventListener("change", function (e) {
+  var i = e.target.getAttribute("data-i"); if (i == null) return;
+  if (E.itens[+i].qtd === 0) { E.itens.splice(+i, 1); renderTudo(); }
+});
+document.getElementById("ed").addEventListener("click", function (e) {
+  var i = e.target.getAttribute("data-del"); if (i == null) return;
+  E.itens.splice(+i, 1); E.editado = true; renderTudo();
+});
+document.getElementById("bAdd").onclick = function () {
+  var s = document.getElementById("addSku").value.trim(), q = parseInt(document.getElementById("addQtd").value, 10) || 1, m = document.getElementById("addMsg");
+  if (!POR_SKU[s]) { m.textContent = "SKU " + s + " não está no catálogo."; return; }
+  var it = E.itens.filter(function (x) { return x.sku === s; })[0];
+  if (it) it.qtd += q; else E.itens.push({ sku: s, qtd: q });
+  E.editado = true; m.textContent = POR_SKU[s].n + " acrescentado."; document.getElementById("addSku").value = ""; renderTudo();
+};
+document.getElementById("bCopiar").onclick = function () {
+  var t = document.getElementById("wpp"), ok = document.getElementById("copiado");
+  (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(function () { ok.textContent = "Copiada."; }, function () { t.select(); document.execCommand("copy"); ok.textContent = "Copiada."; });
+};
+document.getElementById("bPdf").onclick = function () {
+  var antes = document.title;
+  var loja = (E.loja.nome || "loja").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  document.title = "Cotacao-" + loja + "-" + (E.prot || "sem-protocolo");
+  var imgs = Array.prototype.slice.call(document.querySelectorAll("#doc img"));
+  Promise.all(imgs.map(function (im) { return im.complete ? 0 : new Promise(function (r) { im.onload = im.onerror = r; }); })).then(function () {
+    window.print(); setTimeout(function () { document.title = antes; }, 1000);
+  });
+};
+</script>
+</body>
+</html>

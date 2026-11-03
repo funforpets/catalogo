@@ -149,6 +149,16 @@ GROUP BY pr.cd_prod;
 - Cotação não enviada: quando o cliente tem itens na lista, preencheu loja, CNPJ válido, e-mail e WhatsApp e sai da página ou troca de aba sem enviar, o site manda o contato ao RD com o identificador `catalogo-cotacao-nao-enviada` (`CONFIG.RD.CONVERSAO_NAO_ENVIADA`, vazio desliga). Vai uma vez por CNPJ e lista; se a mesma lista já foi enviada, não vai. Não dispara `generate_lead` e não conta como conversão. Os itens não vão, só o contato. No Ploomes, uma automação cria a tarefa para a vendedora ligar para a loja.
 - Teste: `node src/teste-vendedora-e-nao-enviada.js`.
 
+## Página interna de cotação (03/11/2026)
+
+- `catalogo.funforpets.com.br/cotacao.html`: a vendedora cola a mensagem que chegou do catálogo no WhatsApp e sai a cotação em PDF para mandar à loja. Feita para a Ionara gerar a cotação sozinha enquanto o Worker não está no ar. Não aparece no catálogo, tem `noindex` e não grava nada: os dados da loja ficam só na memória da página.
+- Lê os dois formatos de mensagem (`2x 13449` e o antigo `2 un. | 13449 | nome`), pega nome e preço de cada SKU do `src/products.json` (It's Natural com ou sem ST pela UF) e calcula as condições da política v1.3 com as mesmas contas do `gerar_cotacao.py` da pasta Cotações e do `worker/src/politica.js`. Se a política mudar, mudar o bloco `POLITICA` do `src/cotacao-template.html` também.
+- Mostra avisos (lista que não bate com o total da mensagem, SKU fora do catálogo, falta de UF, abaixo do mínimo, quanto falta para a próxima faixa e para a caixa de It's Natural) e o lembrete de conferir no ERP cadastro, inadimplência e estoque. Tem opção para tirar o Kit Boas-Vindas (loja que já comprou) e o pagamento a prazo (loja com pendência), permite mudar quantidade, tirar e acrescentar item, e monta uma mensagem pronta para a loja.
+- O PDF sai pela impressão do navegador ("Salvar como PDF", sem cabeçalhos e rodapés), no mesmo visual do PDF da pasta Cotações.
+- Gerada pelo `src/build.py` a partir de `src/cotacao-template.html`, com todos os produtos do json (com ou sem foto). Não editar o `cotacao.html` direto.
+- Conferida em 03/11/2026 contra as 7 cotações feitas à mão entre 30/10 e 03/11: tabela, à vista, prazo, caixas e simulação bateram em todas.
+- Quando o Worker estiver no ar, a ideia é a mesma página abrir também pelo link da lista completa.
+
 ## Pendências
 
 1. **Domínio próprio: conferir o https.** Feito em 06/10/2026 (CNAME no Cloudflare e arquivo `CNAME` no repositório). Falta marcar "Enforce HTTPS" em Settings > Pages do repositório assim que o GitHub liberar o certificado. Cliente que já tinha lista salva no endereço antigo começa com a lista vazia no novo, porque o navegador guarda a lista por endereço.
