@@ -159,6 +159,18 @@ GROUP BY pr.cd_prod;
 - Conferida em 03/11/2026 contra as 7 cotações feitas à mão entre 30/10 e 03/11: tabela, à vista, prazo, caixas e simulação bateram em todas.
 - Quando o Worker estiver no ar, a ideia é a mesma página abrir também pelo link da lista completa.
 
+## IPI nos importados (05/11/2026)
+
+- O que mudou: o ERP passou a destacar IPI na nota dos importados próprios. Nas vendas da tabela FunForPets (TBRPF) o IPI aparece no pedido desde 03/11/2026 e na nota desde 04/11. O preço de tabela não mudou: os 302 preços do `products.json` foram conferidos contra a TBRPF e a TBRFP2 em 05/11/2026 e batem. O IPI entra por cima do preço.
+- Quem paga: 152 dos 281 importados no catálogo, com alíquota de 5%, 6,5%, 9,75% ou 11,7% (`produto.aliq_ipi` no ERP). It's Natural e Mordidinhas não têm IPI. A alíquota fica no campo `ipi` do `src/products.json` (em %).
+- Como o ERP calcula: por item, sobre quantidade x preço de tabela, sem o desconto, arredondado em 2 casas e somado. Conferido linha a linha na NF 522411 de 04/11/2026 (R$ 357,04). Como o desconto não reduz a base, o IPI é o mesmo à vista e a prazo.
+- No site: o card mostra "+ 9,75% de IPI na nota" embaixo dos preços; a gaveta "Descontos e condições" tem o quadro "IPI nos importados"; a mensagem do WhatsApp ganhou as linhas "IPI (destacado na nota)" e "Total com IPI" depois do valor de tabela (só quando algum item tem IPI).
+- Na página `cotacao.html`: coluna IPI no editor e no PDF, linhas "IPI destacado na nota fiscal" e "Total a preço de tabela, com IPI" no resumo, à vista e a prazo já com o IPI somado (com o valor dos produtos embaixo), aviso com o valor do IPI e conferência contra a linha de IPI da mensagem. A mensagem pronta para a loja explica o IPI.
+- Pedido mínimo, faixas de desconto, prazo e bonificação de It's Natural continuam contando só o valor dos produtos, sem o IPI.
+- Para atualizar as alíquotas: `SELECT cd_prod, aliq_ipi FROM produto WHERE cd_prod IN (...)` no Teia (connection_id 1), gravar `ipi` (em %, sem o campo quando for zero), build e push.
+- Teste: `node src/teste-mensagem.js` tem dois casos novos (itens da NF 522411 dão R$ 357,04; pedido sem IPI não mostra a linha).
+- Worker (ainda não publicado): o `worker/src/politica.js` e o `precos.json` não têm o IPI. Precisa entrar antes de ligar o Worker, com a mesma conta.
+
 ## Pendências
 
 1. **Domínio próprio: conferir o https.** Feito em 06/10/2026 (CNAME no Cloudflare e arquivo `CNAME` no repositório). Falta marcar "Enforce HTTPS" em Settings > Pages do repositório assim que o GitHub liberar o certificado. Cliente que já tinha lista salva no endereço antigo começa com a lista vazia no novo, porque o navegador guarda a lista por endereço.

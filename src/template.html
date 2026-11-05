@@ -218,6 +218,7 @@ main{padding-block:10px 120px}
 .pd i{font-style:normal;font-size:10.5px;font-weight:900;color:var(--its-ink);white-space:nowrap}
 .pd.b{background:#e7f5ec}
 .pd.b i{color:var(--nat-ink)}
+.pipi{font-size:11px;font-weight:700;color:var(--muted)}
 .pcond{border:0;background:none;padding:0;text-align:left;font-size:11px;font-weight:800;color:var(--blue-ink);text-decoration:underline;text-underline-offset:2px}
 .add{width:100%;border:0;border-radius:9px;background:var(--yellow);color:#182a42;font-weight:900;font-size:13px;padding:10px 6px;box-shadow:0 3px 0 var(--yellow-shadow)}
 .add:active{transform:translateY(2px);box-shadow:0 1px 0 var(--yellow-shadow)}
@@ -410,6 +411,10 @@ main{padding-block:10px 120px}
     <div class="box">
       <h3>Kit Boas-Vindas: R$ 50 em produtos</h3>
       <p>Na primeira compra da loja, em pedido a partir de R$ 500, você ganha R$ 50 em produtos. Você escolhe os itens no catálogo até somar R$ 50 e avisa a vendedora junto com a cotação.</p>
+    </div>
+    <div class="box">
+      <h3>IPI nos importados</h3>
+      <p>Parte dos importados tem IPI. Ele vem destacado na nota fiscal, por cima do preço do catálogo, e o percentual aparece embaixo do preço de cada produto. O IPI é calculado sobre o preço de tabela.</p>
     </div>
     <div class="box">
       <h3>Desconto pela faixa do pedido</h3>
@@ -636,12 +641,15 @@ function brl(v){ return v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximu
 /* Preço de tabela (campo "pr" do products.json) e as faixas da política v1.3:
    importados até 20% pela faixa do pedido + 10% à vista (teto 30%); indústria só 10% à vista. */
 function off(v,pct){ return Math.round(v*(100-pct))/100; }
+/* IPI (campo "ipi" do products.json, alíquota em %). Desde nov/2026 vem destacado na nota, por cima do preço. */
+function pctBr(v){ return v.toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"; }
 function priceHtml(p){
   if(!p.pr) return "";
   var un = /pote com|display com|^kit |unidades|com \d+$/i.test(p.n) ? "" : "<span>/un.</span>";
   var h = '<div class="price"><div class="pv"><small>R$</small>'+brl(p.pr)+un+'</div>';
   if(p.grp==="ind") h += '<div class="pd b"><i>10% off à vista</i>R$ '+brl(off(p.pr,10))+'</div>';
   else h += '<div class="pd"><i>20% off</i>R$ '+brl(off(p.pr,20))+'</div><div class="pd b"><i>30% off</i>R$ '+brl(off(p.pr,30))+'</div>';
+  if(p.ipi) h += '<div class="pipi">+ '+pctBr(p.ipi)+' de IPI na nota</div>';
   return h+'<button type="button" class="pcond" data-cond="1">Ver condições do desconto</button></div>';
 }
 function onlyDigits(s){ return (s||"").replace(/\D/g,""); }
@@ -983,6 +991,15 @@ function tableTotal(uf){
   Object.keys(cart).forEach(function(s){ var u=unitPrice(bySku[s], uf); if(u===null){ ok=false; return; } cents += Math.round(u*100)*cart[s]; });
   return ok ? cents/100 : null;
 }
+/* IPI do pedido, como o ERP calcula: por item, sobre quantidade x preço de tabela (sem desconto),
+   arredondado em 2 casas e somado. Conferido contra a NF 522411 de 04/11/2026 (R$ 357,04, todas as linhas iguais).
+   Só importados têm IPI, então não depende da UF. */
+function ipiTotal(){
+  var cents=0;
+  Object.keys(cart).forEach(function(s){ var p=bySku[s]; if(!p.ipi||typeof p.pr!=="number") return;
+    cents += Math.round(Math.round(p.pr*100)*cart[s]*p.ipi/100 + 1e-6); });
+  return cents/100;
+}
 /* Mensagem do WhatsApp. Curta de propósito: o link wa.me corta a mensagem perto de 8.000 caracteres
    (FFP-NXRQ44, 27/10/2026). Cada item vai como "2x 13449"; o nome só entra em lista de até MSG_NOMES_ATE itens.
    link: endereço da lista completa, quando a cotação já está salva no Ploomes. */
@@ -1006,6 +1023,8 @@ function buildMsg(v, qid, link){
   L.push("*Total:* "+t.items+(t.items===1?" produto":" produtos")+", "+t.units+(t.units===1?" unidade.":" unidades."));
   var vt=tableTotal(uf);
   if(vt!==null) L.push("*Valor de tabela:* R$ "+brl(vt));
+  var vi=ipiTotal();
+  if(vt!==null && vi>0){ L.push("*IPI (destacado na nota):* R$ "+brl(vi)); L.push("*Total com IPI:* R$ "+brl(Math.round((vt+vi)*100)/100)); }
   if(link) L.push("*Lista completa:* "+link);
   return L.join("\n");
 }

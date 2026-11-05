@@ -20,6 +20,10 @@ Campos de cada produto em products.json:
   pr   preço de tabela exibido no card (TBRPF; no It's Natural, TBRFP2 sem ST)
   pt   só It's Natural: preço da TBRPF (com ST), usado no valor de tabela da
        mensagem quando a loja não é de SC nem de RO
+  ipi  alíquota de IPI do produto em % (ex.: 9.75), do cadastro do ERP (produto.aliq_ipi).
+       Só nos importados que pagam IPI; sem o campo = sem IPI. Desde nov/2026 o IPI
+       sai destacado na nota, por cima do preço de tabela, calculado sobre o preço de
+       tabela (sem o desconto), linha a linha, arredondado em 2 casas.
 
 Produto sem foto principal em img/ (img/SKU.jpg) fica FORA do index.html até a
 foto chegar. Assim dá para deixar o produto cadastrado no json antes das fotos.
@@ -40,6 +44,6 @@ print(f"index.html gerado com {len(d)} produtos ({sum(1 for p in d if p.get('mv'
 # Página interna de cotação (cotacao.html): todos os produtos do json, com ou sem foto,
 # só com os campos que a conta usa. Ver src/cotacao-template.html.
 tc = (raiz / "src" / "cotacao-template.html").read_text(encoding="utf-8")
-dc = [{k: p[k] for k in ("s", "n", "l", "grp", "pr", "pt") if k in p} for p in json.loads((raiz / "src" / "products.json").read_text(encoding="utf-8"))]
+dc = [{k: p[k] for k in ("s", "n", "l", "grp", "pr", "pt", "ipi") if k in p} for p in json.loads((raiz / "src" / "products.json").read_text(encoding="utf-8"))]
 (raiz / "cotacao.html").write_text(tc.replace("__DATA__", json.dumps(dc, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")
 print(f"cotacao.html gerado com {len(dc)} produtos")

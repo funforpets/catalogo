@@ -87,6 +87,7 @@ textarea#wpp{width:100%;min-height:170px;border:1px solid var(--borda);border-ra
 .resumo td.n{text-align:right;font-weight:700;white-space:nowrap;width:36mm}
 .resumo tr.av td{background:var(--callv)}
 .resumo tr.av td.n{color:var(--verde)}
+.resumo .det{font-size:11px;color:var(--txt2);font-weight:400}
 .pequeno{font-size:8.2pt;color:var(--txt2);margin-top:2mm}
 .promos{break-before:page;padding-top:2mm}
 .card{border:.8px solid var(--borda);border-left:3px solid var(--laranja);padding:7px 9px;margin-bottom:3.5mm;break-inside:avoid}
@@ -208,6 +209,11 @@ var POLITICA = {
   BONIF_ATE: "2026-12-01", KIT_VALOR: 50,
   UF_SEM_ST: ["SC", "RO"]
 };
+/* IPI (nov/2026): parte dos importados tem IPI (campo "ipi" do produto, alíquota em %), destacado na nota
+   por cima do preço. O ERP calcula por item, sobre quantidade x preço de tabela, sem o desconto, e arredonda
+   em 2 casas (conferido na NF 522411 de 04/11/2026). Pedido mínimo, faixas de desconto, prazo e bonificação
+   continuam contando só o valor dos produtos, sem o IPI. */
+function ipiLinha(qtd, preco, aliq) { return aliq ? Math.round(Math.round(preco * 100) * qtd * aliq / 100 + 1e-6) / 100 : 0; }
 var UFS = "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split(" ");
 
 /* ---------- contas ---------- */
@@ -241,6 +247,7 @@ function brl(v) {
   return (v < 0 ? "-" : "") + "R$ " + i + "," + s[1];
 }
 function pct(x) { return Math.round(x * 100) + "%"; }
+function pctIpi(a) { return String(a).replace(".", ",") + "%"; }
 function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 function hojeISO() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function isoBr(iso) { var p = iso.split("-"); return p[2] + "/" + p[1] + "/" + p[0]; }
@@ -251,7 +258,7 @@ PRODUTOS.forEach(function (p) { POR_SKU[p.s] = p; });
 
 /* ---------- leitura da mensagem ---------- */
 function lerMensagem(texto) {
-  var r = { prot: "", vend: "", loja: {}, itens: [], msgProdutos: null, msgUnidades: null, msgValor: null, linhasNaoLidas: [] };
+  var r = { prot: "", vend: "", loja: {}, itens: [], msgProdutos: null, msgUnidades: null, msgValor: null, msgIpi: null, linhasNaoLidas: [] };
   var ordem = [], qtd = {};
   texto.split(/\r?\n/).forEach(function (bruta) {
     var l = bruta.replace(/[*_~]/g, "").replace(/‎|‏/g, "").trim(), m;
@@ -279,6 +286,7 @@ function lerMensagem(texto) {
     }
     if ((m = l.match(/^Total:\s*(\d+)\s*produtos?,\s*(\d+)\s*unidades?/i))) { r.msgProdutos = +m[1]; r.msgUnidades = +m[2]; return; }
     if ((m = l.match(/^Valor de tabela:\s*R\$\s*([\d.]+,\d{2})/i))) { r.msgValor = numBr(m[1]); return; }
+    if ((m = l.match(/^IPI[^:]*:\s*R\$\s*([\d.]+,\d{2})/i))) { r.msgIpi = numBr(m[1]); return; }
   });
   r.itens = ordem.map(function (s) { return { sku: s, qtd: qtd[s] }; });
   return r;
@@ -303,7 +311,7 @@ function montar() {
     hoje: hojeISO(), prot: r.prot, vend: vv.v, vendTrocou: vv.trocou ? vv.original : "",
     loja: { nome: r.loja.nome || "", cnpj: r.loja.cnpj || "", contato: r.loja.contato || "", email: r.loja.email || "",
             whatsapp: r.loja.whatsapp || "", cidade: r.loja.cidade || "", uf: UFS.indexOf(r.loja.uf) >= 0 ? r.loja.uf : "" },
-    itens: r.itens, msg: { produtos: r.msgProdutos, unidades: r.msgUnidades, valor: r.msgValor },
+    itens: r.itens, msg: { produtos: r.msgProdutos, unidades: r.msgUnidades, valor: r.msgValor, ipi: r.msgIpi },
     editado: false, kit: true, prazo: true
   };
   document.getElementById("oKit").checked = true;
@@ -331,7 +339,8 @@ function linhas() {
     var p = POR_SKU[it.sku];
     if (!p) return { sku: it.sku, qtd: it.qtd, desconhecido: true };
     var preco = precoUnitario(p, E.loja.uf);
-    return { sku: it.sku, qtd: it.qtd, nome: p.n, preco: preco, total: r2(it.qtd * preco), grupo: p.grp === "imp" ? "importado" : "industria", l: p.l };
+    return { sku: it.sku, qtd: it.qtd, nome: p.n, preco: preco, total: r2(it.qtd * preco), grupo: p.grp === "imp" ? "importado" : "industria", l: p.l,
+      aliq: p.ipi || 0, ipi: ipiLinha(it.qtd, preco, p.ipi || 0) };
   });
 }
 function calc() {
@@ -344,8 +353,13 @@ function calc() {
   C.impIt = ok.filter(function (x) { return x.grupo === "importado"; });
   C.indIt = ok.filter(function (x) { return x.grupo === "industria"; });
   C.minimoOk = C.tot >= POLITICA.MINIMO;
+  C.ipi = r2(ok.reduce(function (a, x) { return a + x.ipi; }, 0));
+  C.totIpi = r2(C.tot + C.ipi); C.avistaIpi = r2(C.avista + C.ipi); C.prazoIpi = r2(C.prazo + C.ipi);
   var sim = C.impIt.length && imp < 1000 && C.impIt.every(function (x) { return x.qtd === 1; });
-  if (sim) { C.sim = condicoes(r2(imp * 2), ind, E.hoje); }
+  if (sim) {
+    C.sim = condicoes(r2(imp * 2), ind, E.hoje);
+    C.sim.ipi = r2(ok.reduce(function (a, x) { return a + ipiLinha(x.grupo === "importado" ? x.qtd * 2 : x.qtd, x.preco, x.aliq); }, 0));
+  }
   return C;
 }
 window.__cotacao = { calc: function () { return E ? calc() : null; }, estado: function () { return E; } };
@@ -367,7 +381,9 @@ function renderAvisos(C) {
   if (C.indIt.some(function (x) { return x.l === "nat"; }) && E.loja.uf)
     add("", POLITICA.UF_SEM_ST.indexOf(E.loja.uf) >= 0 ? "Loja de " + E.loja.uf + ": It's Natural na tabela sem ST (TBRFP2)." :
       "Loja de " + E.loja.uf + ": It's Natural na tabela com ST (TBRPF), mais barata que o preço do catálogo. A ST entra na nota por cima do preço; o PDF não fala de ST.");
-  if (!C.minimoOk) add("atencao", "Abaixo do pedido mínimo: faltam " + brl(POLITICA.MINIMO - C.tot) + " para R$ 500,00. Sem desconto, prazo nem Kit até lá.");
+  if (C.ipi > 0) add("", "IPI de " + brl(C.ipi) + " nos importados, destacado na nota por cima do preço (total de tabela com IPI: " + brl(C.totIpi) + "). Pedido mínimo, faixas de desconto, prazo e bonificação contam só os produtos, sem o IPI.");
+  if (!E.editado && E.msg.ipi != null && Math.abs(E.msg.ipi - C.ipi) > 0.009) add("alerta", "A mensagem diz " + brl(E.msg.ipi) + " de IPI e a cotação dá " + brl(C.ipi) + ". Confira as quantidades.");
+  if (!C.minimoOk) add("atencao", "Abaixo do pedido mínimo: faltam " + brl(POLITICA.MINIMO - C.tot) + " em produtos para R$ 500,00 (o IPI não conta para o mínimo). Sem desconto, prazo nem Kit até lá.");
   else {
     var pe = proxima(POLITICA.ESCADA, C.imp);
     if (pe && C.impIt.length) add("", "Faltam " + brl(r2(pe - C.imp)) + " em importados para o desconto de volume de " + pct(escadaDe(pe)) + ".");
@@ -380,10 +396,10 @@ function renderAvisos(C) {
 
 /* ---------- editor de itens ---------- */
 function renderEditor(C) {
-  var h = '<tr><th>SKU</th><th>Produto</th><th class="n">Qtd</th><th class="n">Preço un.</th><th class="n">Total</th><th></th></tr>';
+  var h = '<tr><th>SKU</th><th>Produto</th><th class="n">Qtd</th><th class="n">Preço un.</th><th class="n">IPI</th><th class="n">Total</th><th></th></tr>';
   linhas().forEach(function (x, i) {
     h += "<tr><td>" + esc(x.sku) + "</td><td>" + (x.desconhecido ? '<span class="vazio">fora do catálogo</span>' : esc(x.nome)) + '</td><td class="n"><input type="number" min="0" value="' + x.qtd + '" data-i="' + i + '"></td><td class="n">' +
-      (x.desconhecido ? "" : brl(x.preco)) + '</td><td class="n" data-t="' + i + '">' + (x.desconhecido ? "" : brl(x.total)) + '</td><td><button class="x" title="Tirar" data-del="' + i + '">×</button></td></tr>';
+      (x.desconhecido ? "" : brl(x.preco)) + '</td><td class="n">' + (x.aliq ? pctIpi(x.aliq) : "") + '</td><td class="n" data-t="' + i + '">' + (x.desconhecido ? "" : brl(x.total)) + '</td><td><button class="x" title="Tirar" data-del="' + i + '">×</button></td></tr>';
   });
   document.getElementById("ed").innerHTML = h;
 }
@@ -395,7 +411,7 @@ function mensagem(C) {
   var kit = E.kit;
   L.push((nome ? "Oi, " + nome + "!" : "Oi!") + " Aqui é a " + v + ", da DZ Pets. Recebi a cotação da " + (E.loja.nome || "loja") + (E.prot ? " (protocolo " + E.prot + ")" : "") + ", obrigada pela lista!");
   if (!C.minimoOk) {
-    L.push("Os " + C.nUn + " itens que você montou ficam em " + brl(C.tot) + ". Nosso pedido mínimo é de R$ 500, então faltam " + brl(r2(POLITICA.MINIMO - C.tot)) + ". Chegando a R$ 500, você paga à vista com 10% de desconto" +
+    L.push("Os " + C.nUn + " itens que você montou ficam em " + brl(C.tot) + (C.ipi > 0 ? ", mais " + brl(C.ipi) + " de IPI destacado na nota" : "") + ". Nosso pedido mínimo é de R$ 500 em produtos, então faltam " + brl(r2(POLITICA.MINIMO - C.tot)) + ". Chegando a R$ 500, você paga à vista com 10% de desconto" +
       (E.prazo ? " ou parcela em até 3x" : "") + (kit ? ", e como é a primeira compra da loja ainda ganha R$ 50 em produtos à sua escolha" : "") + ".");
   } else {
     var t = "Os " + C.nUn + " itens ficam em " + brl(C.tot) + " de tabela.";
@@ -412,6 +428,7 @@ function mensagem(C) {
     if (pe && C.impIt.length && pe - C.imp <= 800) dicas.push("com mais " + brl(r2(pe - C.imp)) + " em brinquedos e acessórios, o desconto deles " + (C.esc ? "sobe para " : "começa em ") + pct(escadaDe(pe)));
     if (pb && pb - C.tot <= 800) dicas.push("com mais " + brl(r2(pb - C.tot)) + " no pedido, vem " + (C.bon ? "mais uma caixa" : "uma caixa") + " de It's Natural de presente");
     if (dicas.length) L.push("Uma conta que vale olhar: " + dicas.join(", e ") + ".");
+    if (C.ipi > 0) L.push("Parte dos importados tem IPI, que vem destacado na nota por cima desses valores: " + brl(C.ipi) + " neste pedido. Com o IPI, à vista fica em " + brl(C.avistaIpi) + (E.prazo ? " e a prazo em " + brl(C.prazoIpi) : "") + ".");
   }
   L.push("Te mando o PDF com tudo. Qualquer ajuste na lista, é só me falar.");
   return L.join("\n\n");
@@ -441,16 +458,17 @@ function renderDoc(C) {
     '<tr><td class="k">WhatsApp</td><td>' + esc(lj.whatsapp) + '</td><td class="k">Vendedora</td><td>' + esc(v.nome + " · " + v.whatsapp) + "</td></tr>" +
     ((lj.cidade || lj.uf) ? '<tr><td class="k">Cidade</td><td>' + esc(lj.cidade + (lj.uf ? "/" + lj.uf : "")) + "</td><td></td><td></td></tr>" : "") + "</table>";
   h += "<h3>Produtos cotados</h3>";
-  h += '<table class="prods"><thead><tr><th>Foto</th><th>SKU</th><th>Produto</th><th class="n">Qtd</th><th class="n">Preço un.</th><th class="n">Total</th></tr></thead><tbody>';
+  h += '<table class="prods"><thead><tr><th>Foto</th><th>SKU</th><th>Produto</th><th class="n">Qtd</th><th class="n">Preço un.</th>' + (C.ipi > 0 ? '<th class="n">IPI</th>' : "") + '<th class="n">Total</th></tr></thead><tbody>';
+  var temIpi = C.ipi > 0, nc = temIpi ? 7 : 6;
   function bloco(nome, its, sub) {
     if (!its.length) return;
-    h += '<tr class="grupo"><td colspan="6">' + nome + "</td></tr>";
+    h += '<tr class="grupo"><td colspan="' + nc + '">' + nome + "</td></tr>";
     its.forEach(function (x, k) {
       h += "<tr" + (k % 2 ? ' class="par"' : "") + '><td class="f"><img src="img/' + esc(x.sku) + '.jpg" alt="" onerror="this.style.visibility=\'hidden\'"></td><td class="sku">' + esc(x.sku) + "</td><td>" + esc(x.nome) +
-        '</td><td class="n">' + x.qtd + '</td><td class="n">' + brl(x.preco) + '</td><td class="n">' + brl(x.total) + "</td></tr>";
+        '</td><td class="n">' + x.qtd + '</td><td class="n">' + brl(x.preco) + "</td>" + (temIpi ? '<td class="n">' + (x.aliq ? pctIpi(x.aliq) : "") + "</td>" : "") + '<td class="n">' + brl(x.total) + "</td></tr>";
     });
     var nu = its.reduce(function (a, x) { return a + x.qtd; }, 0);
-    h += '<tr class="sub"><td></td><td></td><td colspan="3">Subtotal ' + nome + " (" + its.length + " produtos, " + nu + ' unidades)</td><td class="n">' + brl(sub) + "</td></tr>";
+    h += '<tr class="sub"><td></td><td></td><td colspan="' + (temIpi ? 4 : 3) + '">Subtotal ' + nome + " (" + its.length + " produtos, " + nu + ' unidades)</td><td class="n">' + brl(sub) + "</td></tr>";
   }
   bloco("Importados", C.impIt, C.imp);
   bloco(nomeIndustria(C), C.indIt, C.ind);
@@ -458,12 +476,16 @@ function renderDoc(C) {
 
   var descAv = C.esc ? pct(C.esc) + " + 10% nos importados e 10% na indústria" : "10% de desconto";
   if (!C.indIt.length && C.esc) descAv = pct(C.esc) + " + 10% de desconto";
+  var comIpi = function (v) { return temIpi ? '<br><span class="det">' + brl(v) + " em produtos + " + brl(C.ipi) + " de IPI</span>" : ""; };
   h += '<table class="resumo"><tr><td>Total a preço de tabela (' + C.nProd + " produtos, " + C.nUn + ' unidades)</td><td class="n">' + brl(C.tot) + "</td></tr>";
+  if (temIpi) h += '<tr><td>IPI destacado na nota fiscal (importados)</td><td class="n">' + brl(C.ipi) + "</td></tr>" +
+    '<tr><td>Total a preço de tabela, com IPI</td><td class="n">' + brl(C.totIpi) + "</td></tr>";
   if (C.minimoOk) {
-    h += '<tr class="av"><td><b>Pagamento à vista, com ' + descAv + '</b></td><td class="n">' + brl(C.avista) + "</td></tr>";
-    if (E.prazo) h += "<tr><td>Pagamento a prazo: " + C.parc[0].replace("até ", "em até ") + ", com prazo máximo de " + C.parc[1] + ", sujeito à consulta do CNPJ" + (C.esc ? " (" + pct(C.esc) + " nos importados)" : "") + '</td><td class="n">' + brl(C.prazo) + "</td></tr>";
-  } else h += '<tr class="av"><td><b>Faltam ' + brl(r2(POLITICA.MINIMO - C.tot)) + " para o pedido mínimo de R$ 500,00</b></td><td></td></tr>";
-  h += '</table><div class="pequeno">Frete por conta do comprador. Preços da tabela vigente em ' + dataBr + ", sujeitos à disponibilidade de estoque na hora do pedido. Venda exclusiva para CNPJ, com pedido mínimo de R$ 500,00.</div>";
+    h += '<tr class="av"><td><b>Pagamento à vista, com ' + descAv + (temIpi ? ", com IPI" : "") + "</b>" + comIpi(C.avista) + '</td><td class="n">' + brl(C.avistaIpi) + "</td></tr>";
+    if (E.prazo) h += "<tr><td>Pagamento a prazo: " + C.parc[0].replace("até ", "em até ") + ", com prazo máximo de " + C.parc[1] + ", sujeito à consulta do CNPJ" + (C.esc ? " (" + pct(C.esc) + " nos importados)" : "") + (temIpi ? ", com IPI" : "") + comIpi(C.prazo) + '</td><td class="n">' + brl(C.prazoIpi) + "</td></tr>";
+  } else h += '<tr class="av"><td><b>Faltam ' + brl(r2(POLITICA.MINIMO - C.tot)) + " em produtos para o pedido mínimo de R$ 500,00</b>" + (temIpi ? '<br><span class="det">O IPI não conta para o pedido mínimo.</span>' : "") + "</td><td></td></tr>";
+  h += '</table><div class="pequeno">Frete por conta do comprador. Preços da tabela vigente em ' + dataBr + ", sujeitos à disponibilidade de estoque na hora do pedido. Venda exclusiva para CNPJ, com pedido mínimo de R$ 500,00 em produtos." +
+    (temIpi ? " O IPI dos importados vem destacado na nota fiscal, por cima do preço, calculado sobre o preço de tabela." : "") + "</div>";
 
   h += '<div class="promos"><h3>Promoções válidas para o seu pedido</h3><p>Abaixo estão as condições que valem hoje para pedidos feitos pelo catálogo, e onde o seu pedido está em cada uma.</p>';
   if (E.kit) h += card("Kit Boas-Vindas: R$ 50 em produtos na primeira compra",
@@ -471,7 +493,7 @@ function renderDoc(C) {
     C.minimoOk ? "Seu pedido já se encaixa: é a primeira compra da " + esc(lj.nome) + " e passa de R$ 500,00. É só dizer à " + esc(v.nome) + " quais produtos você quer receber." : "Faltam " + brl(r2(POLITICA.MINIMO - C.tot)) + " para chegar aos R$ 500,00.", C.minimoOk);
   h += card("10% de desconto no pagamento à vista",
     "O desconto vale sobre o pedido inteiro, importados e indústria, em qualquer valor a partir de R$ 500,00. Ele soma com o desconto por volume dos importados.",
-    C.minimoOk ? "Já aplicado na cotação: " + brl(C.avista) + " à vista." : "Vale assim que o pedido chegar a R$ 500,00.", C.minimoOk);
+    C.minimoOk ? "Já aplicado na cotação: " + brl(C.avista) + " à vista" + (temIpi ? ", mais " + brl(C.ipi) + " de IPI (" + brl(C.avistaIpi) + ")" : "") + "." : "Vale assim que o pedido chegar a R$ 500,00.", C.minimoOk);
   if (C.impIt.length) {
     var pe = proxima(POLITICA.ESCADA, C.imp), ste;
     if (C.esc) { ste = "Seus importados somam " + brl(C.imp) + ": desconto de " + pct(C.esc) + " já aplicado."; if (pe) ste += " Faltam " + brl(r2(pe - C.imp)) + " para a faixa de " + pct(escadaDe(pe)) + "."; }
@@ -496,12 +518,13 @@ function renderDoc(C) {
     var S = C.sim, ganhos = [];
     if (S.esc > C.esc) ganhos.push("o desconto de " + pct(S.esc) + " nos importados");
     if (S.bon > C.bon) ganhos.push(S.bon + " caixa" + (S.bon > 1 ? "s" : "") + " de It's Natural bonificada" + (S.bon > 1 ? "s" : ""));
-    var txt = "Levando duas unidades de cada um dos " + C.impIt.length + " importados" + (C.indIt.length ? " e mantendo a indústria como está" : "") + ", os importados somam " + brl(S.imp) + " e o pedido vai para " + brl(S.tot) + " a preço de tabela.";
+    var txt = "Levando duas unidades de cada um dos " + C.impIt.length + " importados" + (C.indIt.length ? " e mantendo a indústria como está" : "") + ", os importados somam " + brl(S.imp) + " e o pedido vai para " + brl(S.tot) + " a preço de tabela" + (S.ipi > 0 ? ", mais " + brl(S.ipi) + " de IPI" : "") + ".";
     if (ganhos.length) txt += " Com isso entram " + ganhos.join(" e ") + ".";
     var avt = S.esc ? "À vista (" + pct(S.esc) + " + 10% nos importados" + (C.indIt.length ? ", 10% na indústria)" : ")") : "À vista (10%)";
     var pzt = "A prazo, " + S.parc[0].replace("até ", "em até ") + " com prazo máximo de " + S.parc[1] + (S.esc ? " (" + pct(S.esc) + " nos importados)" : "");
-    h += '<div class="sim"><div class="ti">Simulação com 2 unidades de cada importado</div><div>' + txt + '</div><table><tr><td>' + avt + '</td><td class="n">' + brl(S.avista) + "</td></tr>" +
-      (E.prazo ? "<tr><td>" + pzt + '</td><td class="n">' + brl(S.prazo) + "</td></tr>" : "") + "</table></div>";
+    if (S.ipi > 0) { avt += ", com IPI"; pzt += ", com IPI"; }
+    h += '<div class="sim"><div class="ti">Simulação com 2 unidades de cada importado</div><div>' + txt + '</div><table><tr><td>' + avt + '</td><td class="n">' + brl(r2(S.avista + S.ipi)) + "</td></tr>" +
+      (E.prazo ? "<tr><td>" + pzt + '</td><td class="n">' + brl(r2(S.prazo + S.ipi)) + "</td></tr>" : "") + "</table></div>";
   }
   h += "<p>Para fechar ou ajustar o pedido, fale com a " + esc(v.nome) + " pelo WhatsApp " + esc(v.whatsapp) + ".</p></div>";
   h += '<div class="rodape">' + CONFIG.RODAPE + "</div>";
