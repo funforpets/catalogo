@@ -51,6 +51,9 @@ textarea#msg{width:100%;min-height:150px;border:1px solid var(--borda);border-ra
 .ed td.n,.ed th.n{text-align:right;white-space:nowrap}
 .ed input[type=number]{width:64px;border:1px solid var(--borda);border-radius:5px;padding:3px 5px;text-align:right}
 .ed .x{border:0;background:none;color:#c0392b;font-weight:700;cursor:pointer;font-size:15px}
+.peso{margin-top:10px;padding:8px 12px;border-left:4px solid var(--verde);background:var(--callv);border-radius:0 6px 6px 0}
+.peso b{font-size:15px}
+.peso.alerta{border-color:#c0392b;background:#fbeceb}
 .add{display:flex;gap:8px;align-items:center;margin-top:10px}
 .add input{border:1px solid var(--borda);border-radius:6px;padding:6px 8px;width:110px}
 textarea#wpp{width:100%;min-height:170px;border:1px solid var(--borda);border-radius:8px;padding:10px;font-size:13px;background:#fafcfb}
@@ -160,6 +163,7 @@ textarea#wpp{width:100%;min-height:170px;border:1px solid var(--borda);border-ra
 
       <section class="passo">
         <h2>3. Itens</h2>
+        <div class="peso" id="peso" style="margin:0 0 10px"></div>
         <table class="ed" id="ed"></table>
         <div class="add">
           <span class="dica">Acrescentar item:</span>
@@ -340,7 +344,7 @@ function linhas() {
     if (!p) return { sku: it.sku, qtd: it.qtd, desconhecido: true };
     var preco = precoUnitario(p, E.loja.uf);
     return { sku: it.sku, qtd: it.qtd, nome: p.n, preco: preco, total: r2(it.qtd * preco), grupo: p.grp === "imp" ? "importado" : "industria", l: p.l,
-      aliq: p.ipi || 0, ipi: ipiLinha(it.qtd, preco, p.ipi || 0) };
+      aliq: p.ipi || 0, ipi: ipiLinha(it.qtd, preco, p.ipi || 0), kg: p.kg || 0 };
   });
 }
 function calc() {
@@ -353,6 +357,8 @@ function calc() {
   C.impIt = ok.filter(function (x) { return x.grupo === "importado"; });
   C.indIt = ok.filter(function (x) { return x.grupo === "industria"; });
   C.minimoOk = C.tot >= POLITICA.MINIMO;
+  C.kg = Math.round((ok.reduce(function (a, x) { return a + x.qtd * x.kg; }, 0) + 1e-9) * 1000) / 1000;
+  C.semPeso = ok.filter(function (x) { return !(x.kg > 0) && x.qtd > 0; });
   C.ipi = r2(ok.reduce(function (a, x) { return a + x.ipi; }, 0));
   C.totIpi = r2(C.tot + C.ipi); C.avistaIpi = r2(C.avista + C.ipi); C.prazoIpi = r2(C.prazo + C.ipi);
   var sim = C.impIt.length && imp < 1000 && C.impIt.every(function (x) { return x.qtd === 1; });
@@ -392,6 +398,17 @@ function renderAvisos(C) {
   }
   add("atencao", "Antes de mandar, confira no ERP: se a loja já tem cadastro com compra (se tiver, desmarque o Kit), se o vendedor do cadastro é INADIMPL ou há título em aberto (se houver, desmarque o prazo e fale com a Gerência Comercial) e o estoque dos itens.");
   document.getElementById("avisos").innerHTML = A.join("");
+}
+
+/* ---------- peso para o frete (nov/2026) ----------
+   Campo "kg" do produto: peso bruto da unidade, em kg, de produto.peso_brt do ERP. Uso interno (fica fora do PDF e da
+   mensagem da loja). Produto sem peso cadastrado entra como 0 e vira aviso, porque o total sairia menor que o real. */
+function kgBr(v) { return v.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " kg"; }
+function renderPeso(C) {
+  var el = document.getElementById("peso"), sp = C.semPeso;
+  el.className = "peso" + (sp.length ? " alerta" : "");
+  el.innerHTML = "Peso bruto do pedido para o frete: <b>" + kgBr(C.kg) + "</b> (" + C.nUn + " unidades, soma do peso de cada item)." +
+    (sp.length ? "<br>Sem peso cadastrado no ERP, fora da soma: " + sp.map(function (x) { return esc(x.sku) + " " + esc(x.nome); }).join("; ") + ". O peso real é maior que o mostrado." : "");
 }
 
 /* ---------- editor de itens ---------- */
@@ -534,6 +551,7 @@ function renderDoc(C) {
 function renderTudo(semEditor) {
   var C = calc();
   renderAvisos(C);
+  renderPeso(C);
   if (!semEditor) renderEditor(C);
   else linhas().forEach(function (x, i) { var td = document.querySelector('[data-t="' + i + '"]'); if (td && !x.desconhecido) td.textContent = brl(x.total); });
   document.getElementById("wpp").value = mensagem(C);

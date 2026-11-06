@@ -20,6 +20,9 @@ Campos de cada produto em products.json:
   pr   preço de tabela exibido no card (TBRPF; no It's Natural, TBRFP2 sem ST)
   pt   só It's Natural: preço da TBRPF (com ST), usado no valor de tabela da
        mensagem quando a loja não é de SC nem de RO
+  kg   peso bruto da unidade em kg (produto.peso_brt do ERP, 3 casas). Só a página interna
+       de cotação usa, para somar o peso do pedido e cotar o frete; fica fora do index.html.
+       Sem o campo = peso não cadastrado no ERP (a página avisa).
   ipi  alíquota de IPI do produto em % (ex.: 9.75), do cadastro do ERP (produto.aliq_ipi).
        Só nos importados que pagam IPI; sem o campo = sem IPI. Desde nov/2026 o IPI
        sai destacado na nota, por cima do preço de tabela, calculado sobre o preço de
@@ -38,12 +41,13 @@ falta = [s for s in skus if not (raiz / "img" / f"{s}.jpg").exists()]
 if falta:
     print(f"ATENÇÃO, {len(falta)} produto(s) sem foto em img/ ficaram fora do site:", ", ".join(falta))
 d = [p for p in d if p["s"] not in falta]
+d = [{k: v for k, v in p.items() if k != "kg"} for p in d]
 (raiz / "index.html").write_text(t.replace("__DATA__", json.dumps(d, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")
 print(f"index.html gerado com {len(d)} produtos ({sum(1 for p in d if p.get('mv'))} mais vendidos, {sum(1 for p in d if p.get('nov'))} novidades)")
 
 # Página interna de cotação (cotacao.html): todos os produtos do json, com ou sem foto,
 # só com os campos que a conta usa. Ver src/cotacao-template.html.
 tc = (raiz / "src" / "cotacao-template.html").read_text(encoding="utf-8")
-dc = [{k: p[k] for k in ("s", "n", "l", "grp", "pr", "pt", "ipi") if k in p} for p in json.loads((raiz / "src" / "products.json").read_text(encoding="utf-8"))]
+dc = [{k: p[k] for k in ("s", "n", "l", "grp", "pr", "pt", "ipi", "kg") if k in p} for p in json.loads((raiz / "src" / "products.json").read_text(encoding="utf-8"))]
 (raiz / "cotacao.html").write_text(tc.replace("__DATA__", json.dumps(dc, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")
 print(f"cotacao.html gerado com {len(dc)} produtos")
