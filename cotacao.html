@@ -363,8 +363,13 @@ function calc() {
   C.totIpi = r2(C.tot + C.ipi); C.avistaIpi = r2(C.avista + C.ipi); C.prazoIpi = r2(C.prazo + C.ipi);
   var sim = C.impIt.length && imp < 1000 && C.impIt.every(function (x) { return x.qtd === 1; });
   if (sim) {
-    C.sim = condicoes(r2(imp * 2), ind, E.hoje);
-    C.sim.ipi = r2(ok.reduce(function (a, x) { return a + ipiLinha(x.grupo === "importado" ? x.qtd * 2 : x.qtd, x.preco, x.aliq); }, 0));
+    /* Só mostra a simulação se o pedido dobrado chegar ao mínimo: abaixo dele não há à vista nem prazo para
+       simular (e sem esta conferência o PDF saía em branco, caso FFP-PL3TAF de 12/11/2026). */
+    var S = condicoes(r2(imp * 2), ind, E.hoje);
+    if (S.tot >= POLITICA.MINIMO) {
+      C.sim = S;
+      C.sim.ipi = r2(ok.reduce(function (a, x) { return a + ipiLinha(x.grupo === "importado" ? x.qtd * 2 : x.qtd, x.preco, x.aliq); }, 0));
+    }
   }
   return C;
 }
@@ -555,8 +560,15 @@ function renderTudo(semEditor) {
   if (!semEditor) renderEditor(C);
   else linhas().forEach(function (x, i) { var td = document.querySelector('[data-t="' + i + '"]'); if (td && !x.desconhecido) td.textContent = brl(x.total); });
   document.getElementById("wpp").value = mensagem(C);
-  renderDoc(C);
-  document.getElementById("bPdf").disabled = !E.loja.uf;
+  try {
+    renderDoc(C);
+    document.getElementById("bPdf").disabled = !E.loja.uf;
+  } catch (err) {
+    /* Se a folha não montar, avisa na tela e trava o botão, para não sair PDF em branco. */
+    document.getElementById("doc").innerHTML = '<p style="color:#c0392b;font-weight:700;padding:8mm 0">Não foi possível montar o PDF desta cotação (' + esc(err && err.message) + '). Mande a mensagem do WhatsApp para a Gerência Comercial.</p>';
+    document.getElementById("bPdf").disabled = true;
+    if (window.console) console.error(err);
+  }
 }
 
 /* ---------- eventos ---------- */
