@@ -205,6 +205,9 @@ main{padding-block:10px 120px}
 .badge{font-size:10px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;border-radius:6px;padding:3px 7px;box-shadow:0 1px 3px rgba(19,35,58,.18)}
 .badge.mv{background:var(--yellow);color:#182a42}
 .badge.nov{background:var(--navy);color:#fff}
+.badge.se{background:#5b6670;color:#fff}
+.card.se .pic img{opacity:.55}
+.add.se{background:var(--chip);color:var(--muted);box-shadow:none;cursor:default}
 .card h3{font-size:14px;line-height:1.25;margin:0;font-weight:800;overflow-wrap:anywhere}
 .sku{font-size:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
 .sku b{color:var(--ink);font-weight:900}
@@ -560,8 +563,8 @@ var BANNERS = [
     kicker:"Compra do seu tamanho", titulo:"Pedido a partir de R$ 500", texto:"Sem caixa fechada. Você monta o mix item por item.",
     botao:"Montar cotação", acao:{goto:true}, fotos:["13631","13513","13692"] },
   { id:"mordidinhas", img:"banners/b7-mordidinhas.jpg", tema:"red",
-    kicker:"Indústria", titulo:"Mordidinhas Naturais", texto:"Petiscos mastigáveis de colágeno bovino e carne.",
-    botao:"Ver Mordidinhas", acao:{cat:"Mordidinhas Naturais"}, fotos:["13842","13839","13837"] },
+    kicker:"Indústria", titulo:"Mordidinhas", texto:"Colágeno, Crispy, ossinhos e palitos, do pacote de 7 ao de 1 kg.",
+    botao:"Ver Mordidinhas", acao:{line:"mor"}, fotos:["13842","13839","13082"] },
   { id:"arranhadores", img:"banners/b3-arranhadores.jpg", tema:"gold",
     kicker:"Linha FunForPets", titulo:"Arranhadores com ticket alto", texto:"Peças de acabamento premium para ganhar mais por venda.",
     botao:"Ver arranhadores", acao:{cat:"Arranhadores"}, fotos:["13466","13468","13467"] },
@@ -577,7 +580,7 @@ var PRODUCTS = __DATA__;
 
 var GROUPS = [
   { id:"imp", nome:"Importados", cats:["Brinquedos","Comedouros e bebedouros","Higiene e beleza","Passeio","Arranhadores","Conforto"] },
-  { id:"ind", nome:"Indústria", cats:["It's Natural","Mordidinhas Naturais"] }
+  { id:"ind", nome:"Indústria", cats:["It's Natural","Mordidinhas Naturais","Mordidinhas Crispy","Mordidinhas Saborosas","Mordidinhas 1 kg e 500 g"] }
 ];
 var CATS = [], CAT_GRP = {};
 GROUPS.forEach(function(g){ g.cats.forEach(function(c){ CATS.push(c); CAT_GRP[c]=g.id; }); });
@@ -645,7 +648,7 @@ function off(v,pct){ return Math.round(v*(100-pct))/100; }
 function pctBr(v){ return v.toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"; }
 function priceHtml(p){
   if(!p.pr) return "";
-  var un = /pote com|display com|^kit |unidades|com \d+$/i.test(p.n) ? "" : "<span>/un.</span>";
+  var un = /pote com|display com|pacote com|^kit |unidades|com \d+$/i.test(p.n) ? "" : "<span>/un.</span>";
   var h = '<div class="price"><div class="pv"><small>R$</small>'+brl(p.pr)+un+'</div>';
   if(p.grp==="ind") h += '<div class="pd b"><i>10% off à vista</i>R$ '+brl(off(p.pr,10))+'</div>';
   else h += '<div class="pd"><i>20% off</i>R$ '+brl(off(p.pr,20))+'</div><div class="pd b"><i>30% off</i>R$ '+brl(off(p.pr,30))+'</div>';
@@ -752,7 +755,8 @@ function filtered(st){
   if(st.dest==="mv") l.sort(function(a,b){ return a.mv-b.mv; });
   if(st.dest==="nov") l.sort(function(a,b){ return (+b.s)-(+a.s); });
   if(ord){ var sg=ord==="menor"?1:-1; l.sort(function(a,b){ if(!a.pr||!b.pr) return (a.pr?0:1)-(b.pr?0:1); return sg*(a.pr-b.pr); }); }
-  return l;
+  /* produto sem estoque (campo "se") vai para o fim da lista, em qualquer ordem */
+  return l.filter(function(p){ return !p.se; }).concat(l.filter(function(p){ return p.se; }));
 }
 function activeCount(){ return (state.pet!=="todos"?1:0)+(state.cat?1:0)+(state.grp&&!state.cat?1:0)+(state.line?1:0)+(state.dest?1:0); }
 function renderDest(){
@@ -868,6 +872,7 @@ function goToProducts(){ var y=$("toolbar").getBoundingClientRect().top + window
 /* ---- grade ---- */
 function actHtml(p){
   var q = cart[p.s]||0;
+  if(!q && p.se) return '<button type="button" class="add se" disabled>Sem estoque</button>';
   if(!q) return '<button type="button" class="add" data-add="'+p.s+'">Adicionar à cotação</button>';
   return '<div class="qty"><button type="button" data-dec="'+p.s+'" aria-label="Diminuir quantidade">&minus;</button>'+
     '<input type="number" min="0" inputmode="numeric" value="'+q+'" data-set="'+p.s+'" aria-label="Quantidade de '+esc(p.n)+'">'+
@@ -875,11 +880,11 @@ function actHtml(p){
 }
 function cardHtml(p){
   var tags = '<span class="tag '+p.l+'">'+esc(lineName(p.l))+'</span>';
-  var badges = (p.mv?'<span class="badge mv">'+DEST.mv.tag+'</span>':'')+(p.nov?'<span class="badge nov">'+DEST.nov.tag+'</span>':'');
+  var badges = (p.se?'<span class="badge se">Sem estoque</span>':'')+(p.mv?'<span class="badge mv">'+DEST.mv.tag+'</span>':'')+(p.nov?'<span class="badge nov">'+DEST.nov.tag+'</span>':'');
   if(badges) badges='<span class="badges">'+badges+'</span>';
   if(p.x && /sortid|acompanha/i.test(p.x)) tags += '<span class="tag var">'+esc(p.x)+'</span>';
   if(p.cx) tags += '<span class="tag var">Caixa com '+p.cx+'</span>';
-  return '<article class="card'+(cart[p.s]?' in':'')+'" data-card="'+p.s+'">'+
+  return '<article class="card'+(cart[p.s]?' in':'')+(p.se?' se':'')+'" data-card="'+p.s+'">'+
     '<div class="picw"><button type="button" class="pic" data-zoom="'+p.s+'" aria-label="Ampliar foto de '+esc(p.n)+'"><img src="'+img(p.s)+'" alt="'+esc(p.n)+'" loading="lazy" decoding="async" width="560" height="560"></button>'+badges+navHtml(p,1,"data-pn")+'</div>'+thumbsHtml(p,1,"data-ph")+
     '<div class="body"><div class="tags">'+tags+'</div><h3>'+esc(p.n)+'</h3>'+
     '<span class="sku">Cód. <b>'+p.s+'</b></span>'+priceHtml(p)+

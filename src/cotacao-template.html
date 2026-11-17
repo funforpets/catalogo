@@ -283,7 +283,7 @@ function lerMensagem(texto) {
       }
       return;
     }
-    if ((m = l.match(/^(\d+)\s*x\s*(\d{4,6})\b/i)) || (m = l.match(/^(\d+)\s*un\.?\s*\|\s*(\d{4,6})\b/i))) {
+    if ((m = l.match(/^(\d+)\s*x\s*(\d{1,6})\b/i)) || (m = l.match(/^(\d+)\s*un\.?\s*\|\s*(\d{1,6})\b/i))) {
       var s = m[2], q = parseInt(m[1], 10);
       if (!(s in qtd)) { ordem.push(s); qtd[s] = 0; }
       qtd[s] += q; return;
@@ -344,7 +344,7 @@ function linhas() {
     if (!p) return { sku: it.sku, qtd: it.qtd, desconhecido: true };
     var preco = precoUnitario(p, E.loja.uf);
     return { sku: it.sku, qtd: it.qtd, nome: p.n, preco: preco, total: r2(it.qtd * preco), grupo: p.grp === "imp" ? "importado" : "industria", l: p.l,
-      aliq: p.ipi || 0, ipi: ipiLinha(it.qtd, preco, p.ipi || 0), kg: p.kg || 0 };
+      aliq: p.ipi || 0, ipi: ipiLinha(it.qtd, preco, p.ipi || 0), kg: p.kg || 0, se: !!p.se };
   });
 }
 function calc() {
@@ -382,6 +382,8 @@ function renderAvisos(C) {
   if (!E.prot) add("atencao", "A mensagem veio sem a linha do protocolo. Confira se ela foi copiada inteira.");
   if (!E.loja.uf) add("alerta", "Escolha a UF da loja. Sem ela não dá para saber a tabela do It's Natural.");
   if (E.vendTrocou) add("atencao", "A mensagem era para a " + esc(E.vendTrocou) + ". A cotação sai com a " + esc(E.vend.nome) + ", que atende o catálogo.");
+  var semEst = C.linhas.filter(function (x) { return x.se; });
+  if (semEst.length) add("alerta", "Sem estoque no último retrato do catálogo: " + semEst.map(function (x) { return x.qtd + "x " + esc(x.sku) + " " + esc(x.nome); }).join(", ") + ". Confira no ERP e, se continuar sem, tire da cotação e avise a loja.");
   if (C.desconhecidos.length) add("alerta", "SKU que não está no catálogo, ficou fora da cotação: " + C.desconhecidos.map(function (x) { return x.qtd + "x " + esc(x.sku); }).join(", ") + ". Confira o código com a loja.");
   if (!E.editado && E.msg.unidades != null && (E.msg.unidades !== C.nUn || E.msg.produtos !== C.nProd + C.desconhecidos.length))
     add("alerta", "A mensagem diz " + E.msg.produtos + " produtos e " + E.msg.unidades + " unidades, mas os itens listados somam " + (C.nProd + C.desconhecidos.length) + " produtos e " + (C.nUn + C.desconhecidos.reduce(function (a, x) { return a + x.qtd; }, 0)) + " unidades. Confirme as quantidades com a loja antes de mandar.");
@@ -460,7 +462,7 @@ function faixaInicio(imp) { for (var i = 0; i < POLITICA.ESCADA.length; i++) if 
 /* ---------- documento ---------- */
 function nomeIndustria(C) {
   var n = [];
-  if (C.indIt.some(function (x) { return x.l === "mor"; })) n.push("Mordidinhas Naturais");
+  if (C.indIt.some(function (x) { return x.l === "mor"; })) n.push("Mordidinhas");
   if (C.indIt.some(function (x) { return x.l === "nat"; })) n.push("It's Natural");
   return n.length ? "Indústria (" + n.join(" e ") + ")" : "Indústria";
 }

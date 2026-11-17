@@ -17,6 +17,8 @@ Campos de cada produto em products.json:
   cx   unidades por caixa (só Mordidinhas; mostra "Caixa com N")
   mv   posição no ranking dos 50 mais vendidos (1 a 50). Filtro "Mais vendidos"
   nov  1 = novidade (cadastro recente no ERP). Filtro "Novidades"
+  se   1 = sem estoque disponível no ERP (CENTRAL menos reservado). Mostra o selo "Sem estoque",
+       trava o botão de adicionar e manda o produto para o fim da lista
   pr   preço de tabela exibido no card (TBRPF; no It's Natural, TBRFP2 sem ST)
   pt   só It's Natural: preço da TBRPF (com ST), usado no valor de tabela da
        mensagem quando a loja não é de SC nem de RO
@@ -48,6 +50,6 @@ print(f"index.html gerado com {len(d)} produtos ({sum(1 for p in d if p.get('mv'
 # Página interna de cotação (cotacao.html): todos os produtos do json, com ou sem foto,
 # só com os campos que a conta usa. Ver src/cotacao-template.html.
 tc = (raiz / "src" / "cotacao-template.html").read_text(encoding="utf-8")
-dc = [{k: p[k] for k in ("s", "n", "l", "grp", "pr", "pt", "ipi", "kg") if k in p} for p in json.loads((raiz / "src" / "products.json").read_text(encoding="utf-8"))]
+dc = [{k: p[k] for k in ("s", "n", "l", "grp", "pr", "pt", "ipi", "kg", "se") if k in p} for p in json.loads((raiz / "src" / "products.json").read_text(encoding="utf-8"))]
 (raiz / "cotacao.html").write_text(tc.replace("__DATA__", json.dumps(dc, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")
 print(f"cotacao.html gerado com {len(dc)} produtos")
